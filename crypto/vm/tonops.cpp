@@ -340,10 +340,21 @@ int exec_compute_hash(VmState* st, int mode) {
   return 0;
 }
 
-int exec_compute_groth16(VmState* st) {
+int exec_compute_groth16ss(VmState* st) {
   using namespace nil::crypto3;
 
-  VM_LOG(st) << "execute GRTH16U";
+  VM_LOG(st) << "execute GRTH16SS";
+  Stack& stack = st->get_stack();
+  auto cs = stack.pop_cellslice();
+  if (cs->size() & 7) {
+    throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
+  }
+}
+
+int exec_compute_groth16cs(VmState* st) {
+  using namespace nil::crypto3;
+
+  VM_LOG(st) << "execute GRTH16CS";
   Stack& stack = st->get_stack();
   auto cs = stack.pop_cellslice();
   if (cs->size() & 7) {
@@ -411,8 +422,8 @@ void register_ton_crypto_ops(OpcodeTable& cp0) {
       .insert(OpcodeInstr::mksimple(0xf902, 16, "SHA256U", exec_compute_sha256))
       .insert(OpcodeInstr::mksimple(0xf910, 16, "CHKSIGNU", std::bind(exec_ed25519_check_signature, _1, false)))
       .insert(OpcodeInstr::mksimple(0xf911, 16, "CHKSIGNS", std::bind(exec_ed25519_check_signature, _1, true)))
-      .insert(OpcodeInstr::mksimple(0xf912, 16, "GRTH16SS", exec_compute_groth16))
-      .insert(OpcodeInstr::mksimple(0xf913, 16, "GRTH16CS", exec_compute_groth16));
+      .insert(OpcodeInstr::mksimple(0xf912, 16, "GRTH16SS", exec_compute_groth16ss))
+      .insert(OpcodeInstr::mksimple(0xf913, 16, "GRTH16CS", exec_compute_groth16cs));
 }
 
 int exec_compute_data_size(VmState* st, int mode) {
