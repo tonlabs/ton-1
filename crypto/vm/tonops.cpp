@@ -349,8 +349,6 @@ int exec_compute_groth16(VmState* st) {
   if (cs->size() & 7) {
     throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
   }
-
-  compute<zk::ƒ
 }
 
 int exec_compute_sha256(VmState* st) {

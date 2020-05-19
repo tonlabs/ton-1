@@ -4,6 +4,14 @@ if (NOT OPENSSL_FOUND)
   find_package(OpenSSL REQUIRED)
 endif()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/zk/cmake"
+     "${CMAKE_CURRENT_LIST_DIR}/zk/cmake/packages"
+     "${CMAKE_CURRENT_LIST_DIR}/zk/cmake/modules/share/modules/cmake")
+
+add_subdirectory(fft)
+add_subdirectory(ff)
+add_subdirectory(zk)
+
 set(TON_CRYPTO_SOURCE
   Ed25519.cpp
   common/bigint.cpp
@@ -268,7 +276,8 @@ set(FIFT_TEST_SOURCE
 add_library(ton_crypto STATIC ${TON_CRYPTO_SOURCE})
 target_include_directories(ton_crypto PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>)
-target_link_libraries(ton_crypto PUBLIC ${OPENSSL_CRYPTO_LIBRARY} tdutils)
+target_link_libraries(ton_crypto PUBLIC ${OPENSSL_CRYPTO_LIBRARY} tdutils
+                      crypto3::zk crypto3::ff crypto3::fft boost::multiprecision)
 if (NOT WIN32)
   target_link_libraries(ton_crypto PUBLIC dl z)
 endif()
