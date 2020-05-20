@@ -4,12 +4,9 @@ if (NOT OPENSSL_FOUND)
   find_package(OpenSSL REQUIRED)
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/zk/cmake"
-     "${CMAKE_CURRENT_LIST_DIR}/zk/cmake/packages"
-     "${CMAKE_CURRENT_LIST_DIR}/zk/cmake/modules/share/modules/cmake")
-
 add_subdirectory(fft)
 add_subdirectory(ff)
+add_subdirectory(multiprecision)
 add_subdirectory(zk)
 
 set(TON_CRYPTO_SOURCE
@@ -408,7 +405,7 @@ target_include_directories(create-state PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT
 if (INTERNAL_COMPILE)
   target_link_libraries(create-state PUBLIC ton_crypto fift-lib ton_block tonlib)
 else()
-  if (TONLIB_COMPILE) 
+  if (TONLIB_COMPILE)
     target_link_libraries(create-state PUBLIC ton_crypto fift-lib ton_block tonlib)
   else()
     target_link_libraries(create-state PUBLIC ton_crypto fift-lib ton_block)

@@ -25,3 +25,6 @@
 [submodule "crypto/multiprecision"]
 	path = crypto/multiprecision
 	url = https://github.com/nilfoundation/multiprecision.git
+[submodule "crypto/pairing"]
+	path = crypto/pairing
+	url = git@github.com:nilfoundation/pairing.git
