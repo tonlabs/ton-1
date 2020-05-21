@@ -29,7 +29,7 @@
 
 #include "openssl/digest.hpp"
 
-#include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark.hpp>
+#include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
 namespace vm {
 
@@ -349,6 +349,7 @@ int exec_compute_groth16ss(VmState* st) {
   if (cs->size() & 7) {
     throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
   }
+
 }
 
 int exec_compute_groth16cs(VmState* st) {
