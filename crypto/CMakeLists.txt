@@ -6,6 +6,7 @@ endif()
 
 add_subdirectory(fft)
 add_subdirectory(ff)
+add_subdirectory(pairing)
 add_subdirectory(multiprecision)
 add_subdirectory(zk)
 
