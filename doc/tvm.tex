@@ -42,9 +42,17 @@
 \fancyhf{}
 \fancyfoot[C]{\thepage}
 \def\markbothsame#1{\fancyhead[C]{#1}}
-\def\mysection#1{\section{#1}\fancyhead[C]{\textsc{Chapter \textbf{\thesection.} #1}}}
-\def\mysubsection#1{\subsection{#1}\fancyhead[C]{\small{\textsc{\textrm{\thesubsection.} #1}}}}
-\def\myappendix#1{\section{#1}\fancyhead[C]{\textsc{Appendix \textbf{\thesection.} #1}}}
+\def\mysection#1{
+
+
+    \section{#1}\fancyhead[C]{\textsc{Chapter \textbf{\thesection.} #1}}}
+\def\mysubsection#1{
+
+    \subsection{#1}\fancyhead[C]{\small{\textsc{\textrm{\thesubsection.} #1}}}}
+\def\myappendix#1{
+
+
+    \section{#1}\fancyhead[C]{\textsc{Appendix \textbf{\thesection.} #1}}}
 %
 \let\tp=\textit
 \let\vr=\textit
@@ -216,7 +224,7 @@
     \begin{itemize}
         \item \texttt{c0} --- Contains the {\em next continuation} or {\em return continuation} (similar to the subroutine return address in conventional designs). This value must be a {\em Continuation}.
         \item \texttt{c1} --- Contains the {\em alternative (return) continuation}; this value must be a {\em Continuation}. It is used in some (experimental) control flow primitives, allowing TVM to define and call ``subroutines with two exit points''.
-        \item \texttt{c2} --- Contains the {\em exception handler}. This value is a {\em Continuation},  invoked whenever an exception is triggered.
+        \item \texttt{c2} --- Contains the {\em exception handler}. This value is a {\em Continuation}, invoked whenever an exception is triggered.
         \item \texttt{c3} --- Contains the {\em current dictionary}, essentially a hashmap containing the code of all functions used in the program. For reasons explained later in~\ptref{p:func.rec.dict}, this value is also a {\em Continuation}, not a {\em Cell\/} as one might expect.
         \item \texttt{c4} --- Contains the {\em root of persistent data}, or simply the {\em data}. This value is a {\em Cell}. When the code of a smart contract is invoked, \texttt{c4} points to the root cell of its persistent data kept in the blockchain state. If the smart contract needs to modify this data, it changes \texttt{c4} before returning.
         \item \texttt{c5} --- Contains the {\em output actions}. It is also a {\em Cell\/} initialized by a reference to an empty cell, but its final value is considered one of the smart contract outputs. For instance, the {\tt SENDMSG} primitive, specific for the TON Blockchain, simply inserts the message into a list stored in the output actions.
@@ -1040,25 +1048,25 @@ The conditional and iterated execution primitives described in~\ptref{p:cond.ite
 \nxsubpoint\emb{$Y$-combinator solution: pass a continuation as an argument to itself}
 One way of dealing with the problem of recursion is by passing a copy of the continuation representing the body of a recursive function as an extra argument to itself. Consider, for example, the following code for a factorial function:
 \begin{verbatim}
-71      PUSHINT 1
-9C      PUSHCONT {
-22        PUSH s2
-72        PUSHINT 2
-B9        LESS
-DC        IFRET
-59        ROTREV
+71 PUSHINT 1
+9C PUSHCONT {
+22 PUSH s2
+72 PUSHINT 2
+B9 LESS
+DC IFRET
+59 ROTREV
 21        PUSH s1
-A8        MUL
-01        SWAP
-A5        DEC
-02        XCHG s2
-20        DUP
-D9        JMPX
+A8 MUL
+01 SWAP
+A5 DEC
+02 XCHG s2
+20 DUP
+D9 JMPX
 }
-20      DUP
-D8      EXECUTE
-30      DROP
-31      NIP
+20 DUP
+D8 EXECUTE
+30 DROP
+31 NIP
 \end{verbatim}
 This roughly corresponds to defining an auxiliary function $\textit{body}$ with three arguments $n$, $x$, and $f$, such that $\textit{body}(n,x,f)$ equals $x$ if $n<2$ and $f(n-1,nx,f)$ otherwise, then invoking $\textit{body}(n,1,\textit{body})$ to compute the factorial of~$n$. The recursion is then implemented with the aid of the {\tt DUP}; {\tt EXECUTE} construction, or {\tt DUP}; {\tt JMPX} in the case of tail recursion. This trick is equivalent to applying $Y$-combinator to a function $\textit{body}$.
 
@@ -1073,40 +1081,40 @@ n\cdot\textit{fact}(n-1)&\quad\text{otherwise}
 \end{equation}
 is as follows:
 \begin{verbatim}
-9D      PUSHCONT {
-21        OVER
-C102      LESSINT 2
-92        PUSHCONT {
+9D PUSHCONT {
+21 OVER
+C102 LESSINT 2
+92 PUSHCONT {
 5B          2DROP
-71          PUSHINT 1
+71 PUSHINT 1
 }
-E0        IFJMP
-21        OVER
+E0 IFJMP
+21 OVER
 A5        DEC
-01        SWAP
-20        DUP
-D8        EXECUTE
-A8        MUL
+01 SWAP
+20 DUP
+D8 EXECUTE
+A8 MUL
 }
-20      DUP
-D9      JMPX
+20 DUP
+D9 JMPX
 \end{verbatim}
 This definition of the factorial function is two bytes shorter than the previous one, but it uses general recursion instead of tail recursion, so it cannot be easily transformed into a loop.
 
 \nxsubpoint\emb{Comparison: non-recursive definition of the factorial function}
 Incidentally, a non-recursive definition of the factorial with the aid of a {\tt REPEAT} loop is also possible, and it is much shorter than both recursive definitions:
 \begin{verbatim}
-71      PUSHINT 1
-01      SWAP
+71 PUSHINT 1
+01 SWAP
 20      DUP
-94      PUSHCONT {
-66        TUCK
-A8        MUL
-01        SWAP
-A5        DEC
+94 PUSHCONT {
+66 TUCK
+A8 MUL
+01 SWAP
+A5 DEC
 }
-E4      REPEAT
-30      DROP
+E4 REPEAT
+30 DROP
 \end{verbatim}
 
 \nxsubpoint\emb{Several mutually recursive functions}
@@ -1951,7 +1959,7 @@ Most of the loop primitives listed below are implemented with the aid of extraor
 \nxsubpoint\emb{Throwing exceptions}
 \begin{itemize}
 \item {\tt F22\_$nn$} --- {\tt THROW $nn$} ( -- $0$ $nn$), throws exception $0\leq nn\leq 63$ with parameter zero. In other words, it transfers control to the continuation in {\tt c2}, pushing $0$ and $nn$ into its stack, and discarding the old stack altogether.
-\item {\tt F26\_$nn$} --- {\tt THROWIF $nn$} ($f$ -- ), throws exception $0\leq nn\leq 63$ with  parameter zero only if integer $f\neq0$.
+\item {\tt F26\_$nn$} --- {\tt THROWIF $nn$} ($f$ -- ), throws exception $0\leq nn\leq 63$ with parameter zero only if integer $f\neq0$.
 \item {\tt F2A\_$nn$} --- {\tt THROWIFNOT $nn$} ($f$ -- ), throws exception $0\leq nn\leq 63$ with parameter zero only if integer $f=0$.
 \item {\tt F2C4\_$nn$} --- {\tt THROW $nn$} for $0\leq nn<2^{11}$, an encoding of {\tt THROW $nn$} for larger values of $nn$.
 \item {\tt F2CC\_$nn$} --- {\tt THROWARG $nn$} ($x$ -- $x$ $nn$), throws exception $0\leq nn<2^{11}$ with parameter $x$, by copying $x$ and $nn$ into the stack of ${\tt c2}$ and transferring control to {\tt c2}.
@@ -2252,7 +2260,7 @@ The ``global variables'' may be helpful in implementing some high-level smart-co
 \item {\tt F910} --- {\tt CHKSIGNU} ($h$ $s$ $k$ -- $?$), checks the Ed25519-signature $s$ of a hash $h$ (a 256-bit unsigned integer, usually computed as the hash of some data) using public key $k$ (also represented by a 256-bit unsigned integer). The signature $s$ must be a {\em Slice\/} containing at least 512 data bits; only the first 512 bits are used. The result is $-1$ if the signature is valid, $0$ otherwise. Notice that {\tt CHKSIGNU} is equivalent to {\tt ROT}; {\tt NEWB}; {\tt STU 256}; {\tt ENDB}; {\tt NEWC}; {\tt ROTREV}; {\tt CHKSIGNS}, i.e., to {\tt CHKSIGNS} with the first argument $d$ set to 256-bit {\em Slice} containing~$h$. Therefore, if $h$ is computed as the hash of some data, these data are hashed {\em twice}, the second hashing occurring inside {\tt CHKSIGNS}.
 \item {\tt F911} --- {\tt CHKSIGNS} ($d$ $s$ $k$ -- $?$), checks whether $s$ is a valid Ed25519-signature of the data portion of {\em Slice\/}~$d$ using public key~$k$, similarly to {\tt CHKSIGNU}. If the bit length of {\em Slice\/}~$d$ is not divisible by eight, throws a cell underflow exception. The verification of Ed25519 signatures is the standard one, with $\Sha$ used to reduce $d$ to the 256-bit number that is actually signed.
 \item {\tt F912} --- {\tt GRTH16SS} ($s$ -- $s$), computes Groth16 proof of the data bits of a {\em Slice\/}~$s1$. If
-$size(s1) \% 8 != 0$, throws cell underflow exception. The value returned is a {\em Slice\/}~$s2$ prepended with 32 bit integer $S$ – size of each field member - with a proof, which contains 3 field members of size $S$$.
+$size(s1) \% 8 != 0$, throws cell underflow exception. The value returned is a {\em Slice\/}~$s2$ prepended with 32 bit integer $S$ – size of each field member - with a proof, which contains 3 field members of size $S$.
 \item {\tt F913} --- {\tt GRTH16CS} ($c$ -- $s$), computes Groth16 proof of the data bits of a {\em Cell\/}~$c$.
 If $size(c) \% 8 != 0$, throws cell underflow exception. The value returned is a {\em Slice\/}~$s$ prepended with
 32 bit integer $S$ – size of each field member - with a proof, which contains 3 field members of size $S$.
@@ -2290,7 +2298,7 @@ addr_extern$01 len:(## 8) external_address:(bits len)
 anycast_info$_ depth:(#<= 30) { depth >= 1 }
 rewrite_pfx:(bits depth) = Anycast;
 addr_std$10 anycast:(Maybe Anycast)
-workchain_id:int8 address:bits256  = MsgAddressInt;
+workchain_id:int8 address:bits256 = MsgAddressInt;
 addr_var$11 anycast:(Maybe Anycast) addr_len:(## 9)
 workchain_id:int32 address:(bits addr_len) = MsgAddressInt;
 _ _:MsgAddressInt = MsgAddress;
@@ -2379,7 +2387,7 @@ The following primitives, which begin with byte {\tt FF}, typically are used at 
 This appendix discusses certain formal properties of TVM that are necessary for executing smart contracts in the TON Blockchain and validating such executions afterwards.
 
 \mysubsection{Serialization of the TVM state}
-Recall that a virtual machine used for executing smart contracts in a block\-chain must be {\em deterministic}, otherwise the validation of each execution would require the inclusion of all  intermediate steps of the execution into a block, or at least of the choices made when indeterministic operations have been performed.
+Recall that a virtual machine used for executing smart contracts in a block\-chain must be {\em deterministic}, otherwise the validation of each execution would require the inclusion of all intermediate steps of the execution into a block, or at least of the choices made when indeterministic operations have been performed.
 
 Furthermore, the {\em state\/} of such a virtual machine must be (uniquely) serializable, so that even if the state itself is not usually included in a block, its {\em hash\/} is still well-defined and can be included into a block for verification purposes.
 
@@ -2394,7 +2402,7 @@ _ cell:^Cell st_bits:(## 10) end_bits:(## 10)
 { st_bits <= end_bits }
 st_ref:(#<= 4) end_ref:(#<= 4)
 { st_ref <= end_ref } = VmCellSlice;
-vm_stk_slice#04 _:VmCellSlice  = VmStackValue;
+vm_stk_slice#04 _:VmCellSlice = VmStackValue;
 vm_stk_builder#05 cell:^Cell = VmStackValue;
 vm_stk_cont#06 cont:VmCont = VmStackValue;
 \end{verbatim}
@@ -2524,17 +2532,17 @@ We assume (cf.~\ptref{p:stack.conv}) that the register machines we consider acce
 \nxsubpoint\label{sp:cmp1.3addr}\emb{Three-address register machine}
 The machine code (or rather the corresponding assembly code) for a three-address register machine (cf.~\ptref{sp:reg.op.arg}) might look as follows:
 \begin{verbatim}
-IMUL r6,r0,r3  // r6 := r0 * r3 = ad
-IMUL r7,r1,r2  // r7 := bc
-SUB r6,r6,r7   // r6 := ad-bc = D
-IMUL r3,r4,r3  // r3 := ed
-IMUL r1,r1,r5  // r1 := bf
-SUB r3,r3,r1   // r3 := ed-bf = Dx
-IMUL r1,r0,r5  // r1 := af
-IMUL r7,r4,r2  // r7 := ec
-SUB r1,r1,r7   // r1 := af-ec = Dy
-IDIV r0,r3,r6  // x := Dx/D
-IDIV r1,r1,r6  // y := Dy/D
+IMUL r6,r0,r3 // r6 := r0 * r3 = ad
+IMUL r7,r1,r2 // r7 := bc
+SUB r6,r6,r7 // r6 := ad-bc = D
+IMUL r3,r4,r3 // r3 := ed
+IMUL r1,r1,r5 // r1 := bf
+SUB r3,r3,r1 // r3 := ed-bf = Dx
+IMUL r1,r0,r5 // r1 := af
+IMUL r7,r4,r2 // r7 := ec
+SUB r1,r1,r7 // r1 := af-ec = Dy
+IDIV r0,r3,r6 // x := Dx/D
+IDIV r1,r1,r6 // y := Dy/D
 RET
 \end{verbatim}
 We have used 12 operations and at least 23 bytes (each operation uses $3\times 4=12$ bits to indicate the three registers involved, and at least 4 bits to indicate the operation performed; thus we need two or three bytes to encode each operation). A more realistic estimate would be 34 (three bytes for each arithmetic operation) or 31 bytes (two bytes for addition and subtraction, three bytes for multiplication and division).
@@ -2542,21 +2550,21 @@ We have used 12 operations and at least 23 bytes (each operation uses $3\times 4
 \nxsubpoint\label{sp:cmp1.2addr}\emb{Two-address register machine}
 The machine code for a two-address register machine might look as follows:
 \begin{verbatim}
-MOV r6,r0   // r6 := r0 = a
-MOV r7,r1   // r7 := b
-IMUL r6,r3  // r6 := r6*r3 = ad
-IMUL r7,r2  // r7 := bc
-IMUL r3,r4  // r3 := de
-IMUL r1,r5  // r1 := bf
-SUB r6,r7   // r6 := ad-bc = D
-IMUL r5,r0  // r5 := af
-SUB r3,r1   // r3 := de-bf = Dx
-IMUL r2,r4  // r2 := ce
-MOV r0,r3   // r0 := Dx
-SUB r5,r2   // r5 := af-ce = Dy
-IDIV r0,r6  // r0 := x = Dx/D
-MOV r1,r5   // r1 := Dy
-IDIV r1,r6  // r1 := Dy/D
+MOV r6,r0 // r6 := r0 = a
+MOV r7,r1 // r7 := b
+IMUL r6,r3 // r6 := r6*r3 = ad
+IMUL r7,r2 // r7 := bc
+IMUL r3,r4 // r3 := de
+IMUL r1,r5 // r1 := bf
+SUB r6,r7 // r6 := ad-bc = D
+IMUL r5,r0 // r5 := af
+SUB r3,r1 // r3 := de-bf = Dx
+IMUL r2,r4 // r2 := ce
+MOV r0,r3 // r0 := Dx
+SUB r5,r2 // r5 := af-ce = Dy
+IDIV r0,r6 // r0 := x = Dx/D
+MOV r1,r5 // r1 := Dy
+IDIV r1,r6 // r1 := Dy/D
 RET
 \end{verbatim}
 We have used 16 operations; optimistically assuming each of them (with the exception of \texttt{RET}) can be encoded by two bytes, this code would require 31 bytes.\footnote{It is interesting to compare this code with that generated by optimizing C compilers for the x86-64 architecture.
@@ -2568,27 +2576,27 @@ Secondly, the encoding used for arithmetic and move operations is less optimisti
 \nxsubpoint\label{sp:cmp1.1addr}\emb{One-address register machine}
 The machine code for a one-address register machine might look as follows:
 \begin{verbatim}
-MOV r8,r0  // r8 := r0 = a
-XCHG r1    // r0 <-> r1; r0 := b, r1 := a
-MOV r6,r0  // r6 := b
-IMUL r2    // r0 := r0*r2; r0 := bc
-MOV r7,r0  // r7 := bc
-MOV r0,r8  // r0 := a
-IMUL r3    // r0 := ad
-SUB r7     // r0 := ad-bc = D
-XCHG r1    // r1 := D,  r0 := b
-IMUL r5    // r0 := bf
-XCHG r3    // r0 := d,  r3 := bf
-IMUL r4    // r0 := de
-SUB r3     // r0 := de-bf = Dx
+MOV r8,r0 // r8 := r0 = a
+XCHG r1 // r0 <-> r1; r0 := b, r1 := a
+MOV r6,r0 // r6 := b
+IMUL r2 // r0 := r0*r2; r0 := bc
+MOV r7,r0 // r7 := bc
+MOV r0,r8 // r0 := a
+IMUL r3 // r0 := ad
+SUB r7 // r0 := ad-bc = D
+XCHG r1 // r1 := D, r0 := b
+IMUL r5 // r0 := bf
+XCHG r3 // r0 := d, r3 := bf
+IMUL r4 // r0 := de
+SUB r3 // r0 := de-bf = Dx
 IDIV r1    // r0 := Dx/D = x
-XCHG r2    // r0 := c,  r2 := x
-IMUL r4    // r0 := ce
-XCHG r5    // r0 := f,  r5 := ce
-IMUL r8    // r0 := af
-SUB r5     // r0 := af-ce = Dy
-IDIV r1    // r0 := Dy/D = y
-MOV r1,r0  // r1 := y
+XCHG r2 // r0 := c, r2 := x
+IMUL r4 // r0 := ce
+XCHG r5 // r0 := f, r5 := ce
+IMUL r8 // r0 := af
+SUB r5 // r0 := af-ce = Dy
+IDIV r1 // r0 := Dy/D = y
+MOV r1,r0 // r1 := y
 MOV r0,r2  // r0 := x
 RET
 \end{verbatim}
@@ -2602,29 +2610,29 @@ PUSH s5    // a b c d e f a
 PUSH s3    // a b c d e f a d
 IMUL       // a b c d e f ad
 PUSH s5    // a b c d e f ad b
-PUSH s5    // a b c d e f ad b c
-IMUL       // a b c d e f ad bc
-SUB        // a b c d e f ad-bc
-XCHG s3    // a b c ad-bc e f d
-PUSH s2    // a b c ad-bc e f d e
-IMUL       // a b c ad-bc e f de
-XCHG s5    // a de c ad-bc e f b
-PUSH s1    // a de c ad-bc e f b f
-IMUL       // a de c ad-bc e f bf
+PUSH s5 // a b c d e f ad b c
+IMUL // a b c d e f ad bc
+SUB // a b c d e f ad-bc
+XCHG s3 // a b c ad-bc e f d
+PUSH s2 // a b c ad-bc e f d e
+IMUL // a b c ad-bc e f de
+XCHG s5 // a de c ad-bc e f b
+PUSH s1 // a de c ad-bc e f b f
+IMUL // a de c ad-bc e f bf
 XCHG s1,s5 // a f c ad-bc e de bf
-SUB        // a f c ad-bc e de-bf
+SUB // a f c ad-bc e de-bf
 XCHG s3    // a f de-bf ad-bc e c
-IMUL       // a f de-bf ad-bc ec
-XCHG s3    // a ec de-bf ad-bc f
+IMUL // a f de-bf ad-bc ec
+XCHG s3 // a ec de-bf ad-bc f
 XCHG s1,s4 // ad-bc ec de-bf a f
-IMUL       // D ec Dx af
-XCHG s1    // D ec af Dx
-XCHG s2    // D Dx af ec
-SUB        // D Dx Dy
-XCHG s1    // D Dy Dx
-PUSH s2    // D Dy Dx D
-IDIV       // D Dy x
-XCHG s2    // x Dy D
+IMUL // D ec Dx af
+XCHG s1 // D ec af Dx
+XCHG s2 // D Dx af ec
+SUB // D Dx Dy
+XCHG s1 // D Dy Dx
+PUSH s2 // D Dy Dx D
+IDIV // D Dy x
+XCHG s2 // x Dy D
 IDIV       // x y
 RET
 \end{verbatim}
@@ -2637,11 +2645,11 @@ The code presented above might have been produced by a rather unsophisticated co
 \nxsubpoint\emb{Stack machine with compound stack primitives}
 A stack machine with compound stack primitives (cf.~\ptref{sp:stack.comp}) would not significantly improve code density of the code presented above, at least in terms of bytes used. The only difference is that, if we were not allowed to use commutativity of multiplication, the extra \texttt{XCHG s1} inserted before the third \texttt{IMUL} might be combined with two previous operations \texttt{XCHG s3}, \texttt{PUSH s2} into one compound operation \texttt{PUXC s2,s3}; we provide the resulting code below. To make this less redundant, we show a version of the code that computes subexpression $af$ before $ec$ as specified in the original source file. We see that this replaces six operations (starting from line 15) with five other operations, and disables the \texttt{ROT} optimization:
 \begin{verbatim}
-PUSH s5    // a b c d e f a
-PUSH s3    // a b c d e f a d
-IMUL       // a b c d e f ad
-PUSH s5    // a b c d e f ad b
-PUSH s5    // a b c d e f ad b c
+PUSH s5 // a b c d e f a
+PUSH s3 // a b c d e f a d
+IMUL // a b c d e f ad
+PUSH s5 // a b c d e f ad b
+PUSH s5 // a b c d e f ad b c
 IMUL       // a b c d e f ad bc
 SUB        // a b c d e f ad-bc
 PUXC s2,s3 // a b c ad-bc e f e d
@@ -2650,19 +2658,19 @@ XCHG s5    // a ed c ad-bc e f b
 PUSH s1    // a ed c ad-bc e f b f
 IMUL       // a ed c ad-bc e f bf
 XCHG s1,s5 // a f c ad-bc e ed bf
-SUB        // a f c ad-bc e ed-bf
-XCHG s4    // a ed-bf c ad-bc e f
+SUB // a f c ad-bc e ed-bf
+XCHG s4 // a ed-bf c ad-bc e f
 XCHG s1,s5 // e Dx c D a f
-IMUL       // e Dx c D af
-XCHG s2    // e Dx af D c
+IMUL // e Dx c D af
+XCHG s2 // e Dx af D c
 XCHG s1,s4 // D Dx af e c
-IMUL       // D Dx af ec
-SUB        // D Dx Dy
+IMUL // D Dx af ec
+SUB // D Dx Dy
 XCHG s1    // D Dy Dx
-PUSH s2    // D Dy Dx D
-IDIV       // D Dy x
-XCHG s2    // x Dy D
-IDIV       // x y
+PUSH s2 // D Dy Dx D
+IDIV // D Dy x
+XCHG s2 // x Dy D
+IDIV // x y
 RET
 \end{verbatim}
 We have used a total of 27 operations and 28 bytes, the same as the previous version (with the \texttt{ROT} optimization). However, we did not use the commutativity of multiplication here, so we can say that compound stack manipulation primitives enable us to reduce the code size from 29 to 28 bytes.
@@ -2675,27 +2683,27 @@ The previous version of code for a stack machine with compound stack primitives 
 
 By interchanging \texttt{XCHG} operations with preceding \texttt{XCHG}, \texttt{PUSH}, and arithmetic operations whenever possible, we obtain code fragment \texttt{XCHG s2,s6}; \texttt{XCHG s1,s0}; \texttt{XCHG s0,s5}, which can then be replaced by compound operation \texttt{XCHG3 s6,s0,s5}. This compound operation would admit a two-byte encoding, thus leading to 27-byte code using only 21 operations:
 \begin{verbatim}
-PUSH2 s5,s2    // a b c d e f a d
-IMUL           // a b c d e f ad
-PUSH2 s5,s4    // a b c d e f ad b c
-IMUL           // a b c d e f ad bc
-SUB            // a b c d e f ad-bc
-PUXC s2,s3     // a b c ad-bc e f e d
-IMUL           // a b c D e f ed
+PUSH2 s5,s2 // a b c d e f a d
+IMUL // a b c d e f ad
+PUSH2 s5,s4 // a b c d e f ad b c
+IMUL // a b c d e f ad bc
+SUB // a b c d e f ad-bc
+PUXC s2,s3 // a b c ad-bc e f e d
+IMUL // a b c D e f ed
 XCHG3 s6,s0,s5 //  (same as XCHG s2,s6; XCHG s1,s0; XCHG s0,s5)
 // e f c D a ed b
-PUSH s5        // e f c D a ed b f
-IMUL           // e f c D a ed bf
-SUB            // e f c D a ed-bf
-XCHG s4        // e Dx c D a f
-IMUL           // e Dx c D af
+PUSH s5 // e f c D a ed b f
+IMUL // e f c D a ed bf
+SUB // e f c D a ed-bf
+XCHG s4 // e Dx c D a f
+IMUL // e Dx c D af
 XCHG2 s4,s2    // D Dx af e c
-IMUL           // D Dx af ec
-SUB            // D Dx Dy
-XCPU s1,s2     // D Dy Dx D
-IDIV           // D Dy x
-XCHG s2        // x Dy D
-IDIV           // x y
+IMUL // D Dx af ec
+SUB // D Dx Dy
+XCPU s1,s2 // D Dy Dx D
+IDIV // D Dy x
+XCHG s2 // x Dy D
+IDIV // x y
 RET
 \end{verbatim}
 It is interesting to note that this version of stack machine code contains only 9 stack manipulation primitives for 11 arithmetic operations. It is not clear, however, whether an optimizing compiler would be able to reorganize the code in such a manner by itself.
@@ -2858,10 +2866,10 @@ extern num r_mul(num, num);
 extern num r_div(num, num);
 
 (num, num) r_f(num a, num b, num c, num d, num e, num f) {
-num D = r_sub(r_mul(a, d), r_mul(b, c));   // a*d-b*c
-num Dx = r_sub(r_mul(e, d), r_mul(b, f));  // e*d-b*f
-num Dy = r_sub(r_mul(a, f), r_mul(e, c));  // a*f-e*c
-return (r_div(Dx, D), r_div(Dy, D));      // Dx/D, Dy/D
+num D = r_sub(r_mul(a, d), r_mul(b, c)); // a*d-b*c
+num Dx = r_sub(r_mul(e, d), r_mul(b, f)); // e*d-b*f
+num Dy = r_sub(r_mul(a, f), r_mul(e, c)); // a*f-e*c
+return (r_div(Dx, D), r_div(Dy, D)); // Dx/D, Dy/D
 }
 \end{verbatim}
 We will ignore all questions related to allocating new objects of type \textit{Rational\/} in memory (e.g., in heap), and to preventing memory leaks. We may assume that the called subroutines \texttt{r\_sub}, \texttt{r\_mul}, and so on allocate new objects simply by advancing some pointer in a pre-allocated buffer, and that unused objects are later freed by a garbage collector, external to the code being analysed.
@@ -2875,46 +2883,46 @@ Because our sample function does not use built-in arithmetic instructions at all
 
 We first assume that $m=0$ (i.e., that all subroutines are free to destroy the values of all registers). In this case, our machine code for \texttt{r\_f} does not have to preserve any registers, but has to save all registers containing useful values into the stack before calling any subroutines. A size-optimizing compiler might produce the following code:
 \begin{verbatim}
-PUSH r4     // STACK: e
-PUSH r1     // STACK: e b
-PUSH r0     //     .. e b a
-PUSH r6     //     .. e b a f
-PUSH r2     //     .. e b a f c
-PUSH r3     //     .. e b a f c d
-MOV r0,r1   // b
+PUSH r4 // STACK: e
+PUSH r1 // STACK: e b
+PUSH r0 // .. e b a
+PUSH r6 //     .. e b a f
+PUSH r2 // .. e b a f c
+PUSH r3 // .. e b a f c d
+MOV r0,r1 // b
 MOV r1,r2   // c
-CALL r_mul  // bc
-PUSH r0     //     .. e b a f c d bc
-MOV r0,s4   // a
-MOV r1,s1   // d
-CALL r_mul  // ad
-POP r1      // bc; .. e b a f c d
-CALL r_sub  // D:=ad-bc
-XCHG r0,s4  // b ; .. e D a f c d
-MOV r1,s2   // f
-CALL r_mul  // bf
-POP r1      // d ; .. e D a f c
-PUSH r0     //     .. e D a f c bf
-MOV r0,s5   // e
-CALL r_mul  // ed
-POP r1      // bf; .. e D a f c
-CALL r_sub  // Dx:=ed-bf
-XCHG r0,s4  // e ; .. Dx D a f c
+CALL r_mul // bc
+PUSH r0 // .. e b a f c d bc
+MOV r0,s4 // a
+MOV r1,s1 // d
+CALL r_mul // ad
+POP r1 // bc; .. e b a f c d
+CALL r_sub // D:=ad-bc
+XCHG r0,s4 // b ; .. e D a f c d
+MOV r1,s2 // f
+CALL r_mul // bf
+POP r1 // d ; .. e D a f c
+PUSH r0 // .. e D a f c bf
+MOV r0,s5 // e
+CALL r_mul // ed
+POP r1 // bf; .. e D a f c
+CALL r_sub // Dx:=ed-bf
+XCHG r0,s4 // e ; .. Dx D a f c
 POP r1      // c ; .. Dx D a f
 CALL r_mul  // ec
-XCHG r0,s1  // a ; .. Dx D ec f
-POP r1      // f ; .. Dx D ec
-CALL r_mul  // af
-POP r1      // ec; .. Dx D
-CALL r_sub  // Dy:=af-ec
-XCHG r0,s1  // Dx; .. Dy D
-MOV r1,s0   // D
-CALL r_div  // x:=Dx/D
-XCHG r0,s1  // Dy; .. x D
+XCHG r0,s1 // a ; .. Dx D ec f
+POP r1 // f ; .. Dx D ec
+CALL r_mul // af
+POP r1 // ec; .. Dx D
+CALL r_sub // Dy:=af-ec
+XCHG r0,s1 // Dx; .. Dy D
+MOV r1,s0 // D
+CALL r_div // x:=Dx/D
+XCHG r0,s1 // Dy; .. x D
 POP r1      // D ; .. x
-CALL r_div  // y:=Dy/D
-MOV r1,r0   // y
-POP r0      // x ; ..
+CALL r_div // y:=Dy/D
+MOV r1,r0 // y
+POP r0 // x ; ..
 RET
 \end{verbatim}
 We have used 41 instructions: 17 one-byte (eight \texttt{PUSH}/\texttt{POP} pairs and one \texttt{RET}), 13 two-byte (\texttt{MOV} and \texttt{XCHG}; out of them 11 ``new'' ones, involving the stack), and 11 three-byte (\texttt{CALL}), for a total of $17\cdot1+13\cdot2+11\cdot3=76$ bytes.\footnote{Code produced for this function by an optimizing compiler for x86-64 architecture with size-optimization enabled actually occupied 150 bytes, due mostly to the fact that actual instruction encodings are about twice as long as we had optimistically assumed.}
@@ -2927,43 +2935,43 @@ This time {\em all\/} registers must be preserved by the subroutines, excluding 
 
 \begin{verbatim}
 PUSH r0     // STACK: a
-PUSH r1     // STACK: a b
-MOV r0,r1   // b
-MOV r1,r2   // c
-CALL r_mul  // bc
-PUSH r0     //     .. a b bc
+PUSH r1 // STACK: a b
+MOV r0,r1 // b
+MOV r1,r2 // c
+CALL r_mul // bc
+PUSH r0 // .. a b bc
 MOV r0,s2   // a
-MOV r1,r3   // d
-CALL r_mul  // ad
-POP r1      // bc; .. a b
-CALL r_sub  // D:=ad-bc
-XCHG r0,s0  // b;  .. a D
+MOV r1,r3 // d
+CALL r_mul // ad
+POP r1 // bc; .. a b
+CALL r_sub // D:=ad-bc
+XCHG r0,s0 // b; .. a D
 MOV r1,r5   // f
-CALL r_mul  // bf
-PUSH r0     //     .. a D bf
-MOV r0,r4   // e
-MOV r1,r3   // d
-CALL r_mul  // ed
-POP r1      // bf; .. a D
-CALL r_sub  // Dx:=ed-bf
-XCHG r0,s1  // a ; .. Dx D
-MOV r1,r5   // f
+CALL r_mul // bf
+PUSH r0 // .. a D bf
+MOV r0,r4 // e
+MOV r1,r3 // d
+CALL r_mul // ed
+POP r1 // bf; .. a D
+CALL r_sub // Dx:=ed-bf
+XCHG r0,s1 // a ; .. Dx D
+MOV r1,r5 // f
 CALL r_mul  // af
-PUSH r0     //     .. Dx D af
-MOV r0,r4   // e
-MOV r1,r2   // c
-CALL r_mul  // ec
-MOV r1,r0   // ec
-POP r0      // af; .. Dx D
-CALL r_sub  // Dy:=af-ec
-XCHG r0,s1  // Dx; .. Dy D
-MOV r1,s0   // D
-CALL r_div  // x:=Dx/D
-XCHG r0,s1  // Dy; .. x D
+PUSH r0 // .. Dx D af
+MOV r0,r4 // e
+MOV r1,r2 // c
+CALL r_mul // ec
+MOV r1,r0 // ec
+POP r0 // af; .. Dx D
+CALL r_sub // Dy:=af-ec
+XCHG r0,s1 // Dx; .. Dy D
+MOV r1,s0 // D
+CALL r_div // x:=Dx/D
+XCHG r0,s1 // Dy; .. x D
 POP r1      // D ; .. x
-CALL r_div  // y:=Dy/D
-MOV r1,r0   // y
-POP r0      // x
+CALL r_div // y:=Dy/D
+MOV r1,r0 // y
+POP r0 // x
 RET
 \end{verbatim}
 We have used 39 instructions: 11 one-byte, 17 two-byte (among them 5 ``new'' instructions), and 11 three-byte, for a total of $11\cdot1+17\cdot2+11\cdot3=78$ bytes. Somewhat paradoxically, the code size in bytes is slightly longer than in the previous case (cf.~\ptref{sp:cmp2.2addr.0}), contrary to what one might have expected. This is partially due to the fact that we have assumed two-byte encodings for ``new'' \texttt{MOV} and \texttt{XCHG} instructions involving the stack, similarly to the ``old'' instructions. Most existing architectures (such as x86-64) use longer encodings (maybe even twice as long) for their counterparts of our ``new'' move and exchange instructions compared to the ``usual'' register-register ones. Taking this into account, we see that we would have obtained here 83 bytes (versus 87 for the code in~\ptref{sp:cmp2.2addr.0}) assuming three-byte encodings of new operations, and 88 bytes (versus 98) assuming four-byte encodings. This shows that, for two-address architectures without optimized encodings for register-stack move and exchange operations, $m=16$ preserved registers might result in slightly shorter code for some non-leaf functions, at the expense of leaf functions (cf.~\ptref{sp:cmp1.16} and~\ptref{sp:cmp1.8}), which would become considerably longer.
@@ -2974,49 +2982,49 @@ For our one-address register machine, we assume that new register-stack instruct
 By adapting the code provided in~\ptref{sp:cmp2.2addr.0} to the one-address machine, we obtain the following:
 \begin{verbatim}
 PUSH r4     // STACK: e
-PUSH r1     // STACK: e b
-PUSH r0     //     .. e b a
-PUSH r6     //     .. e b a f
-PUSH r2     //     .. e b a f c
-PUSH r3     //     .. e b a f c d
-LD s1       // r0:=c
-XCHG r1     // r0:=b, r1:=c
-CALL r_mul  // bc
-PUSH r0     //     .. e b a f c d bc
-LD s1       // d
-XCHG r1     // r1:=d
-LD s4       // a
-CALL r_mul  // ad
-POP r1      // bc; .. e b a f c d
-CALL r_sub  // D:=ad-bc
+PUSH r1 // STACK: e b
+PUSH r0 // .. e b a
+PUSH r6 // .. e b a f
+PUSH r2 // .. e b a f c
+PUSH r3 // .. e b a f c d
+LD s1 // r0:=c
+XCHG r1 // r0:=b, r1:=c
+CALL r_mul // bc
+PUSH r0 // .. e b a f c d bc
+LD s1 // d
+XCHG r1 // r1:=d
+LD s4 // a
+CALL r_mul // ad
+POP r1 // bc; .. e b a f c d
+CALL r_sub // D:=ad-bc
 XCHG s4     // b ; .. e D a f c d
 XCHG r1
-LD s2       // f
-XCHG r1     // r0:=b, r1:=f
-CALL r_mul  // bf
-POP r1      // d ; .. e D a f c
-PUSH r0     //     .. e D a f c bf
-LD s5       // e
-CALL r_mul  // ed
-POP r1      // bf; .. e D a f c
-CALL r_sub  // Dx:=ed-bf
+LD s2 // f
+XCHG r1 // r0:=b, r1:=f
+CALL r_mul // bf
+POP r1 // d ; .. e D a f c
+PUSH r0 // .. e D a f c bf
+LD s5 // e
+CALL r_mul // ed
+POP r1 // bf; .. e D a f c
+CALL r_sub // Dx:=ed-bf
 XCHG s4     // e ; .. Dx D a f c
-POP r1      // c ; .. Dx D a f
-CALL r_mul  // ec
-XCHG s1     // a ; .. Dx D ec f
-POP r1      // f ; .. Dx D ec
-CALL r_mul  // af
-POP r1      // ec; .. Dx D
-CALL r_sub  // Dy:=af-ec
-XCHG s1     // Dx; .. Dy D
-POP r1      // D ; .. Dy
-PUSH r1     //     .. Dy D
-CALL r_div  // x:=Dx/D
-XCHG s1     // Dy; .. x D
+POP r1 // c ; .. Dx D a f
+CALL r_mul // ec
+XCHG s1 // a ; .. Dx D ec f
+POP r1 // f ; .. Dx D ec
+CALL r_mul // af
+POP r1 // ec; .. Dx D
+CALL r_sub // Dy:=af-ec
+XCHG s1 // Dx; .. Dy D
+POP r1 // D ; .. Dy
+PUSH r1 // .. Dy D
+CALL r_div // x:=Dx/D
+XCHG s1 // Dy; .. x D
 POP r1      // D ; .. x
-CALL r_div  // y:=Dy/D
-XCHG r1     // r1:=y
-POP r0      // r0:=x ; ..
+CALL r_div // y:=Dy/D
+XCHG r1 // r1:=y
+POP r0 // r0:=x ; ..
 RET
 \end{verbatim}
 We have used 45 instructions: 34 one-byte and 11 three-byte, for a total of 67 bytes. Compared to the 76 bytes used by two- and three-address machines in \ptref{sp:cmp2.2addr.0}, we see that, again, the one-address register machine code may be denser than that of two-register machines, at the expense of utilizing more opcode space (just as shown in~\ptref{sp:cmp1.summary}). However, this time the extra 3/16 of the opcode space was used for data manipulation instructions, which do not depend on specific arithmetic operations or user functions invoked.
@@ -3027,45 +3035,45 @@ As explained in~\ptref{sp:cmp2.2addr.8}, the preservation of \texttt{r8}--\textt
 \nxsubpoint\label{sp:cmp2.1addr.16}\emb{One-address register machine, $m=16$ preserved registers}
 We simply adapt the code provided in~\ptref{sp:cmp2.2addr.16} to the one-address register machine:
 \begin{verbatim}
-PUSH r0     // STACK: a
-PUSH r1     // STACK: a b
-MOV r0,r1   // b
-MOV r1,r2   // c
-CALL r_mul  // bc
-PUSH r0     //     .. a b bc
-LD s2       // a
-MOV r1,r3   // d
-CALL r_mul  // ad
+PUSH r0 // STACK: a
+PUSH r1 // STACK: a b
+MOV r0,r1 // b
+MOV r1,r2 // c
+CALL r_mul // bc
+PUSH r0 // .. a b bc
+LD s2 // a
+MOV r1,r3 // d
+CALL r_mul // ad
 POP r1      // bc; .. a b
-CALL r_sub  // D:=ad-bc
-XCHG s0     // b;  .. a D
-MOV r1,r5   // f
-CALL r_mul  // bf
-PUSH r0     //     .. a D bf
-MOV r0,r4   // e
-MOV r1,r3   // d
-CALL r_mul  // ed
-POP r1      // bf; .. a D
-CALL r_sub  // Dx:=ed-bf
-XCHG s1     // a ; .. Dx D
-MOV r1,r5   // f
-CALL r_mul  // af
-PUSH r0     //     .. Dx D af
-MOV r0,r4   // e
-MOV r1,r2   // c
-CALL r_mul  // ec
-MOV r1,r0   // ec
-POP r0      // af; .. Dx D
-CALL r_sub  // Dy:=af-ec
-XCHG s1     // Dx; .. Dy D
-POP r1      // D ; .. Dy
-PUSH r1     //     .. Dy D
-CALL r_div  // x:=Dx/D
+CALL r_sub // D:=ad-bc
+XCHG s0 // b; .. a D
+MOV r1,r5 // f
+CALL r_mul // bf
+PUSH r0 // .. a D bf
+MOV r0,r4 // e
+MOV r1,r3 // d
+CALL r_mul // ed
+POP r1 // bf; .. a D
+CALL r_sub // Dx:=ed-bf
+XCHG s1 // a ; .. Dx D
+MOV r1,r5 // f
+CALL r_mul // af
+PUSH r0 // .. Dx D af
+MOV r0,r4 // e
+MOV r1,r2 // c
+CALL r_mul // ec
+MOV r1,r0 // ec
+POP r0 // af; .. Dx D
+CALL r_sub // Dy:=af-ec
+XCHG s1 // Dx; .. Dy D
+POP r1 // D ; .. Dy
+PUSH r1     // .. Dy D
+CALL r_div // x:=Dx/D
 XCHG s1     // Dy; .. x D
-POP r1      // D ; .. x
-CALL r_div  // y:=Dy/D
-MOV r1,r0   // y
-POP r0      // x
+POP r1 // D ; .. x
+CALL r_div // y:=Dy/D
+MOV r1,r0 // y
+POP r0 // x
 RET
 \end{verbatim}
 We have used 40 instructions: 18 one-byte, 11 two-byte, and 11 three-byte, for a total of $18\cdot1+11\cdot2+11\cdot3=73$ bytes.
@@ -3074,35 +3082,35 @@ We have used 40 instructions: 18 one-byte, 11 two-byte, and 11 three-byte, for a
 \emb{Stack machine with basic stack primitives}
 We reuse the code provided in~\ptref{sp:cmp1.stack.base}, simply replacing arithmetic primitives (VM instructions) with subroutine calls. The only substantive modification is the insertion of the previously optional \texttt{XCHG s1} before the third multiplication, because even an optimizing compiler cannot now know whether \texttt{CALL r\_mul} is a commutative operation. We have also used the ``tail recursion optimization'' by replacing the final \texttt{CALL r\_div} followed by \texttt{RET} with \texttt{JMP r\_div}.
 \begin{verbatim}
-PUSH s5     // a b c d e f a
-PUSH s3     // a b c d e f a d
-CALL r_mul  // a b c d e f ad
-PUSH s5     // a b c d e f ad b
-PUSH s5     // a b c d e f ad b c
-CALL r_mul  // a b c d e f ad bc
-CALL r_sub  // a b c d e f ad-bc
-XCHG s3     // a b c ad-bc e f d
-PUSH s2     // a b c ad-bc e f d e
-XCHG s1     // a b c ad-bc e f e d
-CALL r_mul  // a b c ad-bc e f ed
-XCHG s5     // a ed c ad-bc e f b
-PUSH s1     // a ed c ad-bc e f b f
-CALL r_mul  // a ed c ad-bc e f bf
-XCHG s1,s5  // a f c ad-bc e ed bf
-CALL r_sub  // a f c ad-bc e ed-bf
-XCHG s3     // a f ed-bf ad-bc e c
-CALL r_mul  // a f ed-bf ad-bc ec
-XCHG s3     // a ec ed-bf ad-bc f
-XCHG s1,s4  // ad-bc ec ed-bf a f
-CALL r_mul  // D ec Dx af
-XCHG s1     // D ec af Dx
-XCHG s2     // D Dx af ec
-CALL r_sub  // D Dx Dy
-XCHG s1     // D Dy Dx
-PUSH s2     // D Dy Dx D
-CALL r_div  // D Dy x
-XCHG s2     // x Dy D
-JMP r_div   // x y
+PUSH s5 // a b c d e f a
+PUSH s3 // a b c d e f a d
+CALL r_mul // a b c d e f ad
+PUSH s5 // a b c d e f ad b
+PUSH s5 // a b c d e f ad b c
+CALL r_mul // a b c d e f ad bc
+CALL r_sub // a b c d e f ad-bc
+XCHG s3 // a b c ad-bc e f d
+PUSH s2 // a b c ad-bc e f d e
+XCHG s1 // a b c ad-bc e f e d
+CALL r_mul // a b c ad-bc e f ed
+XCHG s5 // a ed c ad-bc e f b
+PUSH s1 // a ed c ad-bc e f b f
+CALL r_mul // a ed c ad-bc e f bf
+XCHG s1,s5 // a f c ad-bc e ed bf
+CALL r_sub // a f c ad-bc e ed-bf
+XCHG s3 // a f ed-bf ad-bc e c
+CALL r_mul // a f ed-bf ad-bc ec
+XCHG s3 // a ec ed-bf ad-bc f
+XCHG s1,s4 // ad-bc ec ed-bf a f
+CALL r_mul // D ec Dx af
+XCHG s1 // D ec af Dx
+XCHG s2 // D Dx af ec
+CALL r_sub // D Dx Dy
+XCHG s1 // D Dy Dx
+PUSH s2 // D Dy Dx D
+CALL r_div // D Dy x
+XCHG s2 // x Dy D
+JMP r_div // x y
 \end{verbatim}
 We have used 29 instructions; assuming one-byte encodings for all stack operations, and three-byte encodings for \texttt{CALL} and \texttt{JMP} instructions, we end up with 51 bytes.
 
@@ -3110,27 +3118,27 @@ We have used 29 instructions; assuming one-byte encodings for all stack operatio
 \emb{Stack machine with compound stack primitives}
 We again reuse the code provided in~\ptref{sp:cmp1.stack.comp}, replacing arithmetic primitives with subroutine calls and making the tail recursion optimization:
 \begin{verbatim}
-PUSH2 s5,s2    // a b c d e f a d
-CALL r_mul     // a b c d e f ad
-PUSH2 s5,s4    // a b c d e f ad b c
-CALL r_mul     // a b c d e f ad bc
+PUSH2 s5,s2 // a b c d e f a d
+CALL r_mul // a b c d e f ad
+PUSH2 s5,s4 // a b c d e f ad b c
+CALL r_mul // a b c d e f ad bc
 CALL r_sub     // a b c d e f ad-bc
 PUXC s2,s3     // a b c ad-bc e f e d
-CALL r_mul     // a b c D e f ed
+CALL r_mul // a b c D e f ed
 XCHG3 s6,s0,s5 //  (same as XCHG s2,s6; XCHG s1,s0; XCHG s0,s5)
 // e f c D a ed b
-PUSH s5        // e f c D a ed b f
-CALL r_mul     // e f c D a ed bf
-CALL r_sub     // e f c D a ed-bf
-XCHG s4        // e Dx c D a f
-CALL r_mul     // e Dx c D af
-XCHG2 s4,s2    // D Dx af e c
-CALL r_mul     // D Dx af ec
-CALL r_sub     // D Dx Dy
+PUSH s5 // e f c D a ed b f
+CALL r_mul // e f c D a ed bf
+CALL r_sub // e f c D a ed-bf
+XCHG s4 // e Dx c D a f
+CALL r_mul // e Dx c D af
+XCHG2 s4,s2 // D Dx af e c
+CALL r_mul // D Dx af ec
+CALL r_sub // D Dx Dy
 XCPU s1,s2     // D Dy Dx D
-CALL r_div     // D Dy x
-XCHG s2        // x Dy D
-JMP r_div      // x y
+CALL r_div // D Dy x
+XCHG s2 // x Dy D
+JMP r_div // x y
 \end{verbatim}
 This code uses only 20 instructions, 9 stack-related and 11 control flow-related (\texttt{CALL} and \texttt{JMP}), for a total of 48 bytes.
 
