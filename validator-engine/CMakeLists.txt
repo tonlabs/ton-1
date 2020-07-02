@@ -11,6 +11,11 @@ set(VALIDATOR_ENGINE_SOURCE
 )
 
 add_executable(validator-engine ${VALIDATOR_ENGINE_SOURCE})
+
+if (GIT_SCM AND GITDIR)
+  add_dependencies(validator-engine gitrev)
+endif()
+
 target_link_libraries(validator-engine overlay tdutils tdactor adnl tl_api dht
   rldp catchain validatorsession full-node validator ton_validator validator
   fift-lib memprof ${JEMALLOC_LIBRARIES})
