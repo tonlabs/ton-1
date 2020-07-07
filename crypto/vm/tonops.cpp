@@ -345,8 +345,6 @@ int exec_keygen_groth16(VmState* st /*, int curve*/) {
   VM_LOG(st) << "execute KGGRTH16";
   Stack& stack = st->get_stack();
 
-  //push key pair on stack
-
   td::RefInt256 res{true};
   stack.push_int(std::move(res));
   return 0;

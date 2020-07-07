@@ -31,3 +31,6 @@
 [submodule "crypto/algebra"]
 	path = crypto/algebra
 	url = git@github.com:nilfoundation/algebra.git
+[submodule "crypto/marshalling"]
+	path = crypto/marshalling
+	url = git@github.com:nilfoundation/marshalling.git

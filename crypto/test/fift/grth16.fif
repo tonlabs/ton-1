@@ -1,0 +1,60 @@
+#!/usr/bin/fift -s
+"Asm.fif" include
+PROGRAM{
+  DECLPROC recv_internal
+  DECLPROC recv_external
+  recv_internal PROC:<{
+    //  in_msg
+    DROP	//
+  }>
+  recv_external PROC:<{
+    //  in_msg
+    DUP	//  in_msg in_msg
+    SEMPTY	//  in_msg _1
+    IFJMP:<{	//  in_msg
+      DROP	//
+    }>	//  in_msg
+    32 LDU	//  _17 _16
+    DROP	//  msg_seqno
+    c4 PUSH	//  msg_seqno _7
+    KGGRTH16
+    GRTH16CS // groth16
+    CHKGRTH16
+    SEMPTY //
+    IFJMP:<{ //
+        DROP //
+    }> //
+    33 THROWIFNOT
+    DROP	//
+  }>
+}END>s constant code
+
+0 tuple 0x076ef1ea , // magic
+0 , 0 , // actions msg_sents
+1570998536 , // unix_time
+1 , 1 , 3 , // block_lt, trans_lt, rand_seed
+0 tuple 100000000000000 , dictnew , , // remaining balance
+0 , dictnew , // contract_address, global_config
+1 tuple // wrap to another tuple
+constant c7
+
+true constant bounce
+
+0 constant recv_internal // to run recv_internal()
+-1 constant recv_external // to invoke recv_external()
+
+
+// Test #1. Empty message.
+
+variable storage
+<b b> storage !
+
+variable message
+<b b> <s message !
+
+message @
+recv_external
+code
+storage @
+c7
+runvmctx
