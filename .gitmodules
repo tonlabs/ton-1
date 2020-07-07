@@ -28,3 +28,6 @@
 [submodule "crypto/pairing"]
 	path = crypto/pairing
 	url = git@github.com:nilfoundation/pairing.git
+[submodule "crypto/algebra"]
+	path = crypto/algebra
+	url = git@github.com:nilfoundation/algebra.git
