@@ -340,27 +340,45 @@ int exec_compute_hash(VmState* st, int mode) {
   return 0;
 }
 
-int exec_compute_groth16ss(VmState* st) {
-  using namespace nil::crypto3;
-
-  VM_LOG(st) << "execute GRTH16SS";
+int exec_keygen_groth16(VmState* st /*, int curve*/) {
+  VM_LOG(st) << "execute KGGRTH16";
   Stack& stack = st->get_stack();
-  auto cs = stack.pop_cellslice();
-  if (cs->size() & 7) {
-    throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
-  }
 
+  //push key pair on stack
+
+  td::RefInt256 res{true};
+  stack.push_int(std::move(res));
+  return 0;
 }
 
-int exec_compute_groth16cs(VmState* st) {
-  using namespace nil::crypto3;
+int exec_compute_groth16(VmState* st, bool from_slice) {
+  VM_LOG(st) << "execute GRTH16" << (from_slice ? "SS" : "CS");
 
-  VM_LOG(st) << "execute GRTH16CS";
   Stack& stack = st->get_stack();
-  auto cs = stack.pop_cellslice();
-  if (cs->size() & 7) {
-    throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
+  if (!from_slice) {
+    auto cell = stack.pop_cell();
+  } else {
+    auto cs = stack.pop_cellslice();
+    vm::CellBuilder cb;
+    CHECK(cb.append_cellslice_bool(std::move(cs)));
+    // TODO: use cb.get_hash() instead
   }
+
+  //get pk - private key - from stack
+
+  td::RefInt256 res{true};
+  stack.push_int(std::move(res));
+  return 0;
+}
+
+int exec_check_groth16(VmState* st) {
+  VM_LOG(st) << "execute CHKGRTH16";
+  Stack& stack = st->get_stack();
+  auto cell = stack.pop_cell();
+
+  td::RefInt256 res{true};
+  stack.push_int(std::move(res));
+  return 0;
 }
 
 int exec_compute_sha256(VmState* st) {
@@ -423,8 +441,10 @@ void register_ton_crypto_ops(OpcodeTable& cp0) {
       .insert(OpcodeInstr::mksimple(0xf902, 16, "SHA256U", exec_compute_sha256))
       .insert(OpcodeInstr::mksimple(0xf910, 16, "CHKSIGNU", std::bind(exec_ed25519_check_signature, _1, false)))
       .insert(OpcodeInstr::mksimple(0xf911, 16, "CHKSIGNS", std::bind(exec_ed25519_check_signature, _1, true)))
-      .insert(OpcodeInstr::mksimple(0xf912, 16, "GRTH16SS", exec_compute_groth16ss))
-      .insert(OpcodeInstr::mksimple(0xf913, 16, "GRTH16CS", exec_compute_groth16cs));
+      .insert(OpcodeInstr::mksimple(0xf912, 16, "GRTH16SS", std::bind(exec_compute_groth16, _1, true)))
+      .insert(OpcodeInstr::mksimple(0xf913, 16, "GRTH16CS", std::bind(exec_compute_groth16, _1, false)))
+      .insert(OpcodeInstr::mksimple(0xf914, 16, "KGGRTH16", exec_keygen_groth16))
+      .insert(OpcodeInstr::mksimple(0xf915, 16, "CHKGRTH16", exec_check_groth16));
 }
 
 int exec_compute_data_size(VmState* st, int mode) {
