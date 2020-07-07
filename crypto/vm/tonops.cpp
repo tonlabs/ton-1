@@ -30,6 +30,7 @@
 #include "openssl/digest.hpp"
 
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
+#include <nil/crypto3/zk/algorithm/compute.hpp>
 
 namespace vm {
 
@@ -363,8 +364,6 @@ int exec_compute_groth16(VmState* st, bool from_slice) {
     CHECK(cb.append_cellslice_bool(std::move(cs)));
     // TODO: use cb.get_hash() instead
   }
-
-  //get pk - private key - from stack
 
   td::RefInt256 res{true};
   stack.push_int(std::move(res));
