@@ -5481,7 +5481,7 @@ bool ValidateQuery::try_validate() {
       }
     }
     LOG(INFO) << "running automated validity checks for block candidate " << id_.to_str();
-    if (!block::gen::t_Block.validate_ref(1000000, block_root_)) {
+    if (!block::gen::t_Block.validate_ref(10000000, block_root_)) {
       return reject_query("block "s + id_.to_str() + " failed to pass automated validity checks");
     }
     if (!fix_all_processed_upto()) {
