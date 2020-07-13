@@ -19,6 +19,7 @@
 #pragma once
 
 #include <map>
+#include <deque>
 
 #include "catchain.h"
 #include "catchain-types.h"
@@ -54,9 +55,12 @@ class CatChainImpl : public CatChain {
   std::string db_suffix_;
   bool allow_unsafe_self_blocks_resync_;
 
+  std::deque<CatChainBlock *> set_processed_queue_;
+
   void send_process();
   void send_preprocess(CatChainBlock *block);
   void set_processed(CatChainBlock *block);
+  void set_processed_impl(CatChainBlock *block);
 
   struct Args {
     td::actor::ActorId<keyring::Keyring> keyring;

@@ -68,21 +68,42 @@ void CatChainImpl::send_preprocess(CatChainBlock *block) {
   VLOG(CATCHAIN_INFO) << this << ": sent preprocessing block " << block->hash() << " src=" << block->source();
 }
 
-void CatChainImpl::set_processed(CatChainBlock *block) {
+void CatChainImpl::set_processed_impl(CatChainBlock *block) {
   if (block->is_processed()) {
     return;
   }
-  auto prev = block->prev();
-  if (prev) {
-    set_processed(prev);
-  }
+
+  std::deque<CatChainBlock *>::iterator it = set_processed_queue_.begin();
 
   auto deps = block->deps();
   for (auto X : deps) {
-    set_processed(X);
+    if (X->is_processed())
+      continue;
+    set_processed_queue_.push_front(X);
   }
 
-  block->set_processed();
+  auto prev = block->prev();
+  if (prev && !prev->is_processed()) {
+    set_processed_queue_.push_front(prev);
+  }
+
+  if (set_processed_queue_.begin() != it) {
+    set_processed_queue_.insert(it, block);
+  } else {
+    block->set_processed();
+  }
+}
+
+void CatChainImpl::set_processed(CatChainBlock *block) {
+  set_processed_impl(block);
+
+  while (!set_processed_queue_.empty()) {
+    CatChainBlock *it = set_processed_queue_.front();
+
+    set_processed_queue_.pop_front();
+
+    set_processed_impl(it);
+  }
 }
 
 void CatChainImpl::processed_block(td::BufferSlice payload) {
