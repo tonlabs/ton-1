@@ -108,7 +108,7 @@ inline ErrorCtxSet ErrorCtx::set_guard(std::vector<std::string> str_list) {
 
 class ValidateQuery : public td::actor::Actor {
   static constexpr int supported_version() {
-    return 4;
+    return 5;
   }
   static constexpr long long supported_capabilities() {
     return ton::capCreateStatsEnabled | ton::capBounceMsgBody | ton::capReportVersion | ton::capShortDequeue;
