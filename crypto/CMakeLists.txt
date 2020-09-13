@@ -4,9 +4,8 @@ if (NOT OPENSSL_FOUND)
   find_package(OpenSSL REQUIRED)
 endif()
 
-add_subdirectory(fft)
 add_subdirectory(algebra)
-add_subdirectory(pairing)
+add_subdirectory(fft)
 add_subdirectory(multiprecision)
 add_subdirectory(zk)
 
