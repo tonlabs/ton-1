@@ -5,7 +5,9 @@ if (NOT OPENSSL_FOUND)
 endif()
 
 add_subdirectory(algebra)
+add_subdirectory(cipher)
 add_subdirectory(fft)
+add_subdirectory(hash)
 add_subdirectory(multiprecision)
 add_subdirectory(zk)
 
