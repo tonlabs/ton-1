@@ -29,8 +29,12 @@
 
 #include "openssl/digest.hpp"
 
+#include <nil/algebra/curves/alt_bn128.hpp>
+
+#include <nil/crypto3/detail/pack.hpp>
+#include <nil/crypto3/detail/pack_numeric.hpp>
+
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
-#include <nil/crypto3/zk/algorithm/compute.hpp>
 
 namespace vm {
 
@@ -341,40 +345,81 @@ int exec_compute_hash(VmState* st, int mode) {
   return 0;
 }
 
+template <typename CurveType>
 int exec_keygen_groth16(VmState* st /*, int curve*/) {
+  using namespace nil::algebra;
+  using namespace nil::crypto3::zk::snark;
+
   VM_LOG(st) << "execute KGGRTH16";
   Stack& stack = st->get_stack();
-
-  td::RefInt256 res{true};
-  stack.push_int(std::move(res));
-  return 0;
-}
-
-int exec_compute_groth16(VmState* st, bool from_slice) {
-  VM_LOG(st) << "execute GRTH16" << (from_slice ? "SS" : "CS");
-
-  Stack& stack = st->get_stack();
-  if (!from_slice) {
-    auto cell = stack.pop_cell();
-  } else {
-    auto cs = stack.pop_cellslice();
-    vm::CellBuilder cb;
-    CHECK(cb.append_cellslice_bool(std::move(cs)));
-    // TODO: use cb.get_hash() instead
+  auto cs = stack.pop_cellslice();
+  if (cs->size() & 7) {
+    throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
   }
+  auto len = (cs->size() << 3);
+  std::vector<unsigned char> data(len);
+  CHECK(cs->prefetch_bytes(data.data(), len));
 
-  td::RefInt256 res{true};
-  stack.push_int(std::move(res));
+  r1cs_gg_ppzksnark_constraint_system<CurveType> r1cs;
+  r1cs_gg_ppzksnark_keypair<CurveType> kp = r1cs_gg_ppzksnark_generator<CurveType>(r1cs);
+
+  td::Ref<CellSlice> res{true};
+  stack.push_cellslice(std::move(res));
   return 0;
 }
 
-int exec_check_groth16(VmState* st) {
-  VM_LOG(st) << "execute CHKGRTH16";
-  Stack& stack = st->get_stack();
-  auto cell = stack.pop_cell();
+template <typename CurveType>
+int exec_compute_groth16(VmState* st, bool from_slice) {
+  using namespace nil::algebra;
+  using namespace nil::crypto3::zk::snark;
+  using namespace nil::crypto3;
+  using namespace nil::crypto3::detail;
 
-  td::RefInt256 res{true};
-  stack.push_int(std::move(res));
+  VM_LOG(st) << "execute PRVGRTH16";
+
+  Stack& stack = st->get_stack();
+  auto cs = stack.pop_cellslice();
+  if (cs->size() & 7) {
+    throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
+  }
+  auto len = (cs->size() << 3);
+  std::vector<unsigned char> data(len);
+  CHECK(cs->prefetch_bytes(data.data(), len));
+
+  r1cs_gg_ppzksnark_proving_key<CurveType> pk;
+  r1cs_gg_ppzksnark_primary_input<CurveType> pi;
+  r1cs_gg_ppzksnark_auxiliary_input<CurveType> ai;
+
+  pack_to<stream_endian::little_octet_big_bit, 7, CHAR_BIT>(data, std::back_inserter(pi));
+  pack_to<stream_endian::little_octet_big_bit, 7, CHAR_BIT>(data, std::back_inserter(ai));
+
+  r1cs_gg_ppzksnark_proof<CurveType> pr = r1cs_gg_ppzksnark_prover<CurveType>(pk, pi, ai);
+
+  td::Ref<CellSlice> res{true};
+  stack.push_cellslice(std::move(res));
+  return 0;
+}
+
+template <typename CurveType>
+int exec_check_groth16(VmState* st) {
+  using namespace nil::algebra;
+  using namespace nil::crypto3::zk::snark;
+
+  VM_LOG(st) << "execute VERGRTH16";
+  Stack& stack = st->get_stack();
+  auto cs = stack.pop_cellslice();
+  if (cs->size() & 7) {
+    throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
+  }
+  auto len = (cs->size() << 3);
+  std::vector<unsigned char> data(len);
+  CHECK(cs->prefetch_bytes(data.data(), len));
+
+  r1cs_gg_ppzksnark_verification_key<CurveType> vk;
+  r1cs_gg_ppzksnark_primary_input<CurveType> pi;
+  r1cs_gg_ppzksnark_proof<CurveType> pr;
+
+  stack.push_bool(r1cs_gg_ppzksnark_verifier_strong_IC<CurveType>(vk, pi, pr));
   return 0;
 }
 
@@ -433,15 +478,17 @@ int exec_ed25519_check_signature(VmState* st, bool from_slice) {
 
 void register_ton_crypto_ops(OpcodeTable& cp0) {
   using namespace std::placeholders;
+  using namespace nil::algebra;
+
   cp0.insert(OpcodeInstr::mksimple(0xf900, 16, "HASHCU", std::bind(exec_compute_hash, _1, 0)))
       .insert(OpcodeInstr::mksimple(0xf901, 16, "HASHSU", std::bind(exec_compute_hash, _1, 1)))
       .insert(OpcodeInstr::mksimple(0xf902, 16, "SHA256U", exec_compute_sha256))
       .insert(OpcodeInstr::mksimple(0xf910, 16, "CHKSIGNU", std::bind(exec_ed25519_check_signature, _1, false)))
       .insert(OpcodeInstr::mksimple(0xf911, 16, "CHKSIGNS", std::bind(exec_ed25519_check_signature, _1, true)))
-      .insert(OpcodeInstr::mksimple(0xf912, 16, "GRTH16SS", std::bind(exec_compute_groth16, _1, true)))
-      .insert(OpcodeInstr::mksimple(0xf913, 16, "GRTH16CS", std::bind(exec_compute_groth16, _1, false)))
-      .insert(OpcodeInstr::mksimple(0xf914, 16, "KGGRTH16", exec_keygen_groth16))
-      .insert(OpcodeInstr::mksimple(0xf915, 16, "CHKGRTH16", exec_check_groth16));
+      .insert(OpcodeInstr::mksimple(0xf912, 16, "PRVGRTH16",
+                                    std::bind(exec_compute_groth16<curves::alt_bn128<>>, _1, true)))
+      .insert(OpcodeInstr::mksimple(0xf913, 16, "KGGRTH16", exec_keygen_groth16<curves::alt_bn128<>>))
+      .insert(OpcodeInstr::mksimple(0xf914, 16, "VERGRTH16", exec_check_groth16<curves::alt_bn128<>>));
 }
 
 int exec_compute_data_size(VmState* st, int mode) {
