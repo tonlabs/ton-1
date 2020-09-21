@@ -29,10 +29,10 @@
 
 #include "openssl/digest.hpp"
 
-#include <nil/algebra/curves/alt_bn128.hpp>
-
 #include <nil/crypto3/detail/pack.hpp>
 #include <nil/crypto3/detail/pack_numeric.hpp>
+
+#include <nil/crypto3/algebra/curves/alt_bn128.hpp>
 
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
@@ -370,7 +370,6 @@ int exec_keygen_groth16(VmState* st /*, int curve*/) {
 
 template <typename CurveType>
 int exec_compute_groth16(VmState* st, bool from_slice) {
-  using namespace nil::algebra;
   using namespace nil::crypto3::zk::snark;
   using namespace nil::crypto3;
   using namespace nil::crypto3::detail;
