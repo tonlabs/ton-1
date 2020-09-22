@@ -477,7 +477,7 @@ int exec_ed25519_check_signature(VmState* st, bool from_slice) {
 
 void register_ton_crypto_ops(OpcodeTable& cp0) {
   using namespace std::placeholders;
-  using namespace nil::algebra;
+  using namespace nil::crypto3::algebra;
 
   cp0.insert(OpcodeInstr::mksimple(0xf900, 16, "HASHCU", std::bind(exec_compute_hash, _1, 0)))
       .insert(OpcodeInstr::mksimple(0xf901, 16, "HASHSU", std::bind(exec_compute_hash, _1, 1)))
