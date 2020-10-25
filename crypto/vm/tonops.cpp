@@ -34,7 +34,7 @@
 
 #include <nil/crypto3/algebra/curves/alt_bn128.hpp>
 
-#include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
+#include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark.hpp>
 
 namespace vm {
 
@@ -347,7 +347,7 @@ int exec_compute_hash(VmState* st, int mode) {
 
 template <typename CurveType>
 int exec_keygen_groth16(VmState* st /*, int curve*/) {
-  using namespace nil::algebra;
+  using namespace nil::crypto3::algebra;
   using namespace nil::crypto3::zk::snark;
 
   VM_LOG(st) << "execute KGGRTH16";
@@ -360,39 +360,8 @@ int exec_keygen_groth16(VmState* st /*, int curve*/) {
   std::vector<unsigned char> data(len);
   CHECK(cs->prefetch_bytes(data.data(), len));
 
-  r1cs_gg_ppzksnark_constraint_system<CurveType> r1cs;
-  r1cs_gg_ppzksnark_keypair<CurveType> kp = r1cs_gg_ppzksnark_generator<CurveType>(r1cs);
-
-  td::Ref<CellSlice> res{true};
-  stack.push_cellslice(std::move(res));
-  return 0;
-}
-
-template <typename CurveType>
-int exec_compute_groth16(VmState* st, bool from_slice) {
-  using namespace nil::crypto3::zk::snark;
-  using namespace nil::crypto3;
-  using namespace nil::crypto3::detail;
-
-  VM_LOG(st) << "execute PRVGRTH16";
-
-  Stack& stack = st->get_stack();
-  auto cs = stack.pop_cellslice();
-  if (cs->size() & 7) {
-    throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
-  }
-  auto len = (cs->size() << 3);
-  std::vector<unsigned char> data(len);
-  CHECK(cs->prefetch_bytes(data.data(), len));
-
-  r1cs_gg_ppzksnark_proving_key<CurveType> pk;
-  r1cs_gg_ppzksnark_primary_input<CurveType> pi;
-  r1cs_gg_ppzksnark_auxiliary_input<CurveType> ai;
-
-  pack_to<stream_endian::little_octet_big_bit, 7, CHAR_BIT>(data, std::back_inserter(pi));
-  pack_to<stream_endian::little_octet_big_bit, 7, CHAR_BIT>(data, std::back_inserter(ai));
-
-  r1cs_gg_ppzksnark_proof<CurveType> pr = r1cs_gg_ppzksnark_prover<CurveType>(pk, pi, ai);
+  typename r1cs_gg_ppzksnark<CurveType>::constraint_system_type r1cs;
+  typename r1cs_gg_ppzksnark<CurveType>::keypair_type kp = r1cs_gg_ppzksnark<CurveType>::generator(r1cs);
 
   td::Ref<CellSlice> res{true};
   stack.push_cellslice(std::move(res));
@@ -401,7 +370,7 @@ int exec_compute_groth16(VmState* st, bool from_slice) {
 
 template <typename CurveType>
 int exec_check_groth16(VmState* st) {
-  using namespace nil::algebra;
+  using namespace nil::crypto3::algebra;
   using namespace nil::crypto3::zk::snark;
 
   VM_LOG(st) << "execute VERGRTH16";
@@ -414,11 +383,11 @@ int exec_check_groth16(VmState* st) {
   std::vector<unsigned char> data(len);
   CHECK(cs->prefetch_bytes(data.data(), len));
 
-  r1cs_gg_ppzksnark_verification_key<CurveType> vk;
-  r1cs_gg_ppzksnark_primary_input<CurveType> pi;
-  r1cs_gg_ppzksnark_proof<CurveType> pr;
+  typename r1cs_gg_ppzksnark<CurveType>::verification_key_type vk;
+  typename r1cs_gg_ppzksnark<CurveType>::primary_input_type pi;
+  typename r1cs_gg_ppzksnark<CurveType>::proof_type pr;
 
-  stack.push_bool(r1cs_gg_ppzksnark_verifier_strong_IC<CurveType>(vk, pi, pr));
+  stack.push_bool(r1cs_gg_ppzksnark<CurveType>::verifier_strong_IC(vk, pi, pr));
   return 0;
 }
 
@@ -484,8 +453,6 @@ void register_ton_crypto_ops(OpcodeTable& cp0) {
       .insert(OpcodeInstr::mksimple(0xf902, 16, "SHA256U", exec_compute_sha256))
       .insert(OpcodeInstr::mksimple(0xf910, 16, "CHKSIGNU", std::bind(exec_ed25519_check_signature, _1, false)))
       .insert(OpcodeInstr::mksimple(0xf911, 16, "CHKSIGNS", std::bind(exec_ed25519_check_signature, _1, true)))
-      .insert(OpcodeInstr::mksimple(0xf912, 16, "PRVGRTH16",
-                                    std::bind(exec_compute_groth16<curves::alt_bn128<>>, _1, true)))
       .insert(OpcodeInstr::mksimple(0xf913, 16, "KGGRTH16", exec_keygen_groth16<curves::alt_bn128<>>))
       .insert(OpcodeInstr::mksimple(0xf914, 16, "VERGRTH16", exec_check_groth16<curves::alt_bn128<>>));
 }
