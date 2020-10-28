@@ -8,7 +8,8 @@ def? $1 { @' $1 } { "" } cond constant suffix
 256 1<<1- 15 / constant AllOnes
 
 wc_master setworkchain
-42 setglobalid   // negative value means a test instance of the blockchain
+// -2 - fld.ton.dev
+-2 setglobalid   // negative value means a test instance of the blockchain
 
 // Initial state of Workchain 0 (Basic workchain)
 
@@ -142,7 +143,8 @@ GR$10000 GR$10000000 GR$100000 sg~3 config.validator_stake_limits!
 // elected-for elect-start-before elect-end-before stakes-frozen-for
 // 400000 200000 4000 400000 config.election_params!
 // 4000 2000 500 1000 config.election_params!  // DEBUG
-65536 32768 8192 32768 config.election_params!  // TestNet DEBUG
+// 65536 32768 8192 32768 config.election_params!  // TestNet DEBUG
+900 600 120 450 config.election_params!
 // config-addr = -1:5555...5555
 AllOnes 5 * constant config_addr
 config_addr config.config_smc!
@@ -198,7 +200,8 @@ GR$100 1 500 config.complaint_prices!
 // newkeypair nip dup ."Validator #2 public key = " Bx. cr
 // 239 add-validator
 
-3000 =: orig_vset_valid_for  // original validator set valid 3000 seconds
+// 3000 =: orig_vset_valid_for  // original validator set valid 3000 seconds
+720 =: orig_vset_valid_for
 now dup orig_vset_valid_for + 0 config.validators!
 
 /*
