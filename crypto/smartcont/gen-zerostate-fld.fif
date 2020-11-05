@@ -2,6 +2,7 @@
 "TonUtil.fif" include
 "Asm.fif" include
 "Lists.fif" include
+"InitWalletsFld.fif" include
 
 def? $1 { @' $1 } { "" } cond constant suffix 
 { suffix $+ } : +suffix
@@ -59,7 +60,7 @@ Libs{
   x{ABACABADABACABA} s>c public_lib
   x{1234} x{5678} |_ s>c private_lib
 }Libs  // libraries
-GR$4999990000 // balance
+GR$1000 // balance
 0 // split_depth
 0 // ticktock
 AllOnes 0 * // address
@@ -153,6 +154,9 @@ elector_addr config.elector_smc!
 
 // 1 sg* 100 sg* 1000 sg* 1000000 sg* config.storage_prices!  // old values (too high)
 1 500 1000 500000 config.storage_prices!
+
+// create specal givers
+create-givers
 config.special!
 
 // gas_price gas_limit special_gas_limit gas_credit block_gas_limit freeze_due_limit delete_due_limit flat_gas_limit flat_gas_price -- 
@@ -224,6 +228,14 @@ Masterchain swap
 ."config smart contract address = " 2dup .addr cr 2dup 7 .Addr cr
 "config-master" +suffix +".addr" save-address-verbose
 // Other data
+
+/*
+ *
+ *  Initial multisignature wallets
+ *
+ */
+
+create-wallets
 
 /*
  *

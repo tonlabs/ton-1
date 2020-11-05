@@ -1,0 +1,68 @@
+library InitWalletsFld // Library to hardcode wallets into zerostate
+
+256 1<<1- 15 / constant Ones
+
+{
+  drop 1 pick "SafeMultisigWallet.tvc" $+ file>B B>boc  
+  <s 2 i@+ nip ref@+ // load code (as cell) from `.tvc` file
+  swap ref@+ nip     // load data (as cell) from `.tvc` file
+  empty_cell         // libs
+  3 roll  // balance
+  0 // split_depth
+  0 // ticktock
+  2 // mode: create
+  register_smc
+  Masterchain swap 2 pick  
+  type ." multisig address = " 2dup .addr cr 2dup 6 .Addr cr
+  rot +"_multisig.addr" save-address-verbose
+} : create-msig
+
+{ } : entry
+
+{
+// [wallets]
+entry "wallet01" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet02" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet03" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet04" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet05" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet06" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet07" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet08" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet09" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet10" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet11" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet12" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet13" GR$100001 "DEPLOY_PUB_KEY" create-msig
+// [end]
+} : create-wallets
+
+
+{
+  drop 2 pick "SetcodeMultisigWallet.tvc" $+ file>B B>boc  
+  <s 2 i@+ nip ref@+ // load code (as cell) from `.tvc` file
+  swap ref@+ nip     // load data (as cell) from `.tvc` file
+  empty_cell         // libs
+  3 roll  // balance
+  0 // split_depth
+  0 // ticktock
+  6 roll // address
+  6 // mode: create + setaddr
+  register_smc
+  dup make_special
+  Masterchain swap 2 pick  
+  type ." multisig address = " 2dup .addr cr 2dup 6 .Addr cr
+  rot +"_multisig.addr" save-address-verbose
+} : create-spec-giver
+
+{ } : giver
+
+{ Ones 7 * } : ref-addr
+{ Ones 8 * } : val-addr
+{ Ones 9 * } : dev-addr
+
+{
+giver "Ref" ref-addr GR$4248896154 "DEPLOY_PUB_KEY" create-spec-giver
+giver "Val" val-addr GR$499240000 "DEPLOY_PUB_KEY" create-spec-giver
+giver "Dev" dev-addr GR$243920000 "DEPLOY_PUB_KEY" create-spec-giver
+} : create-givers
