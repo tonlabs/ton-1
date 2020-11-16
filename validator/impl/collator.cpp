@@ -3868,7 +3868,7 @@ bool Collator::create_block() {
   }
   if (verify >= 1) {
     LOG(INFO) << "verifying new Block";
-    if (!block::gen::t_Block.validate_ref(1000000, new_block)) {
+    if (!block::gen::t_Block.validate_ref(10000000, new_block)) {
       return fatal_error("new Block failed to pass automatic validity tests");
     }
   }

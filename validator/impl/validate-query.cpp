@@ -384,6 +384,8 @@ bool ValidateQuery::init_parse() {
   block::gen::BlockInfo::Record info;
   block::gen::BlockExtra::Record extra;
   block::gen::ExtBlkRef::Record mcref;  // _ ExtBlkRef = BlkMasterInfo;
+// TODO uncomment
+//  block::gen::GlobalVersion::Record gv;
   ShardIdFull shard;
   if (!(tlb::unpack_cell(block_root_, blk) && tlb::unpack_cell(blk.info, info) && !info.version &&
         block::tlb::t_ShardIdent.unpack(info.shard.write(), shard) &&
@@ -394,6 +396,13 @@ bool ValidateQuery::init_parse() {
   if (shard != shard_) {
     return reject_query("shard mismatch in the block header");
   }
+// TODO uncomment
+//  if (!(info.flags & 1) || !tlb::csr_unpack_inexact(info.gen_software, gv)) {
+//    return reject_query("cannot unpack global version from block header");
+//  }
+//  if (gv.version < supported_version()) {
+//    return reject_query(PSTRING() << "This block version "s << gv.version << " is too old");
+//  }
   state_update_ = blk.state_update;
   vm::CellSlice upd_cs{vm::NoVmSpec(), blk.state_update};
   if (!(upd_cs.is_special() && upd_cs.prefetch_long(8) == 4  // merkle update
@@ -5474,7 +5483,7 @@ bool ValidateQuery::try_validate() {
       }
     }
     LOG(INFO) << "running automated validity checks for block candidate " << id_.to_str();
-    if (!block::gen::t_Block.validate_ref(1000000, block_root_)) {
+    if (!block::gen::t_Block.validate_ref(10000000, block_root_)) {
       return reject_query("block "s + id_.to_str() + " failed to pass automated validity checks");
     }
     if (!fix_all_processed_upto()) {
