@@ -33,7 +33,7 @@
 	url = git@github.com:nilfoundation/algebra.git
 [submodule "crypto/marshalling"]
 	path = crypto/marshalling
-	url = git@github.com:nilfoundation/marshalling.git
+	url = https://github.com/nilfoundation/marshalling.git
 [submodule "crypto/hash"]
 	path = crypto/hash
 	url = git@github.com:nilfoundation/crypto3-hash.git
