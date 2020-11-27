@@ -30,18 +30,10 @@
 #include "openssl/digest.hpp"
 
 #include <nil/crypto3/algebra/curves/mnt4.hpp>
-#include <nil/crypto3/algebra/fields/mnt4/base_field.hpp>
-#include <nil/crypto3/algebra/fields/mnt4/scalar_field.hpp>
-#include <nil/crypto3/algebra/fields/arithmetic_params/mnt4.hpp>
-#include <nil/crypto3/algebra/curves/params/multiexp/mnt4.hpp>
-#include <nil/crypto3/algebra/curves/params/wnaf/mnt4.hpp>
 
 #include <nil/crypto3/zk/snark/blueprint.hpp>
 
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark.hpp>
-#include <nil/crypto3/zk/snark/proof_systems/ppzksnark/policies/r1cs_gg_ppzksnark/generator.hpp>
-#include <nil/crypto3/zk/snark/proof_systems/ppzksnark/policies/r1cs_gg_ppzksnark/prover.hpp>
-#include <nil/crypto3/zk/snark/proof_systems/ppzksnark/policies/r1cs_gg_ppzksnark/verifier.hpp>
 #include <nil/crypto3/zk/snark/proof_systems/detail/ppzksnark/r1cs_gg_ppzksnark/marshalling.hpp>
 
 namespace vm {
@@ -356,7 +348,7 @@ int exec_compute_hash(VmState* st, int mode) {
 template <typename CurveType>
 int exec_verify_groth16(VmState* st) {
   using namespace nil::crypto3::algebra;
-  using namespace nil::crypto3::zk::snark;
+  using namespace nil::crypto3::zk;
 
   VM_LOG(st) << "execute VERGRTH16";
   Stack& stack = st->get_stack();
@@ -368,17 +360,14 @@ int exec_verify_groth16(VmState* st) {
   std::vector<unsigned char> data(len);
   CHECK(cs->prefetch_bytes(data.data(), len));
 
-  typename nil::crypto3::zk::snark::detail::verifier_data_from_bits<
-              nil::crypto3::zk::snark::r1cs_gg_ppzksnark<CurveType>>::verifier_data 
-                verifier_data = 
-    nil::crypto3::zk::snark::detail::verifier_data_from_bits<
-      r1cs_gg_ppzksnark<CurveType>>::process(st);
+  typename snark::detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::verifier_data verifier_data =
+      snark::detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::process(st);
 
-  typename r1cs_gg_ppzksnark<CurveType>::verification_key_type vk(verifier_data.vk);
-  typename r1cs_gg_ppzksnark<CurveType>::primary_input_type pi(verifier_data.pi);
-  typename r1cs_gg_ppzksnark<CurveType>::proof_type pr(verifier_data.pr);
+  typename snark::r1cs_gg_ppzksnark<CurveType>::verification_key_type vk(verifier_data.vk);
+  typename snark::r1cs_gg_ppzksnark<CurveType>::primary_input_type pi(verifier_data.pi);
+  typename snark::r1cs_gg_ppzksnark<CurveType>::proof_type pr(verifier_data.pr);
 
-  stack.push_bool(r1cs_gg_ppzksnark<CurveType>::verifier(vk, pi, pr));
+  stack.push_bool(snark::r1cs_gg_ppzksnark<CurveType>::verifier(vk, pi, pr));
   return 0;
 }
 
