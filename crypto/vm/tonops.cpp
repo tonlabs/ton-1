@@ -29,12 +29,22 @@
 
 #include "openssl/digest.hpp"
 
-#include <nil/crypto3/detail/pack.hpp>
-#include <nil/crypto3/detail/pack_numeric.hpp>
+//#include <nil/crypto3/detail/pack.hpp>
+//#include <nil/crypto3/detail/pack_numeric.hpp>
 
-#include <nil/crypto3/algebra/curves/alt_bn128.hpp>
+#include <nil/crypto3/algebra/curves/mnt4.hpp>
+#include <nil/crypto3/algebra/fields/mnt4/base_field.hpp>
+#include <nil/crypto3/algebra/fields/mnt4/scalar_field.hpp>
+#include <nil/crypto3/algebra/fields/arithmetic_params/mnt4.hpp>
+#include <nil/crypto3/algebra/curves/params/multiexp/mnt4.hpp>
+#include <nil/crypto3/algebra/curves/params/wnaf/mnt4.hpp>
+
+#include <nil/crypto3/zk/snark/blueprint.hpp>
 
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark.hpp>
+#include <nil/crypto3/zk/snark/proof_systems/ppzksnark/policies/r1cs_gg_ppzksnark/generator.hpp>
+#include <nil/crypto3/zk/snark/proof_systems/ppzksnark/policies/r1cs_gg_ppzksnark/prover.hpp>
+#include <nil/crypto3/zk/snark/proof_systems/ppzksnark/policies/r1cs_gg_ppzksnark/verifier.hpp>
 
 namespace vm {
 
@@ -346,30 +356,7 @@ int exec_compute_hash(VmState* st, int mode) {
 }
 
 template <typename CurveType>
-int exec_keygen_groth16(VmState* st /*, int curve*/) {
-  using namespace nil::crypto3::algebra;
-  using namespace nil::crypto3::zk::snark;
-
-  VM_LOG(st) << "execute KGGRTH16";
-  Stack& stack = st->get_stack();
-  auto cs = stack.pop_cellslice();
-  if (cs->size() & 7) {
-    throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
-  }
-  auto len = (cs->size() << 3);
-  std::vector<unsigned char> data(len);
-  CHECK(cs->prefetch_bytes(data.data(), len));
-
-  typename r1cs_gg_ppzksnark<CurveType>::constraint_system_type r1cs;
-  typename r1cs_gg_ppzksnark<CurveType>::keypair_type kp = r1cs_gg_ppzksnark<CurveType>::generator(r1cs);
-
-  td::Ref<CellSlice> res{true};
-  stack.push_cellslice(std::move(res));
-  return 0;
-}
-
-template <typename CurveType>
-int exec_check_groth16(VmState* st) {
+int exec_verify_groth16(VmState* st) {
   using namespace nil::crypto3::algebra;
   using namespace nil::crypto3::zk::snark;
 
@@ -387,7 +374,7 @@ int exec_check_groth16(VmState* st) {
   typename r1cs_gg_ppzksnark<CurveType>::primary_input_type pi;
   typename r1cs_gg_ppzksnark<CurveType>::proof_type pr;
 
-  stack.push_bool(r1cs_gg_ppzksnark<CurveType>::verifier_strong_IC(vk, pi, pr));
+  stack.push_bool(r1cs_gg_ppzksnark<CurveType>::verifier(vk, pi, pr));
   return 0;
 }
 
@@ -453,8 +440,7 @@ void register_ton_crypto_ops(OpcodeTable& cp0) {
       .insert(OpcodeInstr::mksimple(0xf902, 16, "SHA256U", exec_compute_sha256))
       .insert(OpcodeInstr::mksimple(0xf910, 16, "CHKSIGNU", std::bind(exec_ed25519_check_signature, _1, false)))
       .insert(OpcodeInstr::mksimple(0xf911, 16, "CHKSIGNS", std::bind(exec_ed25519_check_signature, _1, true)))
-      .insert(OpcodeInstr::mksimple(0xf913, 16, "KGGRTH16", exec_keygen_groth16<curves::alt_bn128<>>))
-      .insert(OpcodeInstr::mksimple(0xf914, 16, "VERGRTH16", exec_check_groth16<curves::alt_bn128<>>));
+      .insert(OpcodeInstr::mksimple(0xf914, 16, "VERGRTH16", exec_verify_groth16<curves::mnt4<298>>));
 }
 
 int exec_compute_data_size(VmState* st, int mode) {
