@@ -368,8 +368,11 @@ int exec_verify_groth16(VmState* st) {
   std::vector<unsigned char> data(len);
   CHECK(cs->prefetch_bytes(data.data(), len));
 
-  typename verifier_data_from_bits<r1cs_gg_ppzksnark<CurveType>>::verifier_data = 
-    verifier_data_from_bits<r1cs_gg_ppzksnark<CurveType>>::process(st);
+  typename nil::crypto3::zk::snark::detail::verifier_data_from_bits<
+              nil::crypto3::zk::snark::r1cs_gg_ppzksnark<CurveType>>::verifier_data 
+                verifier_data = 
+    nil::crypto3::zk::snark::detail::verifier_data_from_bits<
+      r1cs_gg_ppzksnark<CurveType>>::process(st);
 
   typename r1cs_gg_ppzksnark<CurveType>::verification_key_type vk(verifier_data.vk);
   typename r1cs_gg_ppzksnark<CurveType>::primary_input_type pi(verifier_data.pi);
