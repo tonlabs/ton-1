@@ -29,9 +29,6 @@
 
 #include "openssl/digest.hpp"
 
-//#include <nil/crypto3/detail/pack.hpp>
-//#include <nil/crypto3/detail/pack_numeric.hpp>
-
 #include <nil/crypto3/algebra/curves/mnt4.hpp>
 #include <nil/crypto3/algebra/fields/mnt4/base_field.hpp>
 #include <nil/crypto3/algebra/fields/mnt4/scalar_field.hpp>
@@ -45,6 +42,7 @@
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/policies/r1cs_gg_ppzksnark/generator.hpp>
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/policies/r1cs_gg_ppzksnark/prover.hpp>
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/policies/r1cs_gg_ppzksnark/verifier.hpp>
+#include <nil/crypto3/zk/snark/proof_systems/detail/ppzksnark/r1cs_gg_ppzksnark/marshalling.hpp>
 
 namespace vm {
 
@@ -370,9 +368,12 @@ int exec_verify_groth16(VmState* st) {
   std::vector<unsigned char> data(len);
   CHECK(cs->prefetch_bytes(data.data(), len));
 
-  typename r1cs_gg_ppzksnark<CurveType>::verification_key_type vk;
-  typename r1cs_gg_ppzksnark<CurveType>::primary_input_type pi;
-  typename r1cs_gg_ppzksnark<CurveType>::proof_type pr;
+  typename verifier_data_from_bits<r1cs_gg_ppzksnark<CurveType>>::verifier_data = 
+    verifier_data_from_bits<r1cs_gg_ppzksnark<CurveType>>::process(st);
+
+  typename r1cs_gg_ppzksnark<CurveType>::verification_key_type vk(verifier_data.vk);
+  typename r1cs_gg_ppzksnark<CurveType>::primary_input_type pi(verifier_data.pi);
+  typename r1cs_gg_ppzksnark<CurveType>::proof_type pr(verifier_data.pr);
 
   stack.push_bool(r1cs_gg_ppzksnark<CurveType>::verifier(vk, pi, pr));
   return 0;
