@@ -34,9 +34,38 @@
 #include <nil/crypto3/zk/snark/blueprint.hpp>
 
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark.hpp>
-#include <nil/crypto3/zk/snark/proof_systems/detail/ppzksnark/r1cs_gg_ppzksnark/marshalling.hpp>
 
 namespace vm {
+
+namespace detail {
+
+template <typename ProofSystem>
+struct verifier_data_from_bits;
+
+template <typename CurveType>
+struct verifier_data_from_bits<nil::crypto3::zk::snark::r1cs_gg_ppzksnark<CurveType>> {
+  using proof_system = nil::crypto3::zk::snark::r1cs_gg_ppzksnark<CurveType>;
+
+ public:
+  struct verifier_data {
+    typename proof_system::verification_key_type vk;
+    typename proof_system::primary_input_type pi;
+    typename proof_system::proof_type pr;
+
+    verifier_data(){};
+
+    verifier_data(typename proof_system::verification_key_type vk, typename proof_system::primary_input_type pi,
+                  typename proof_system::proof_type pr)
+        : vk(vk), pi(pi), pr(pr){};
+  };
+
+  template <typename DataType>
+  static inline verifier_data process(DataType data) {
+    return verifier_data();
+  }
+};
+
+}  // namespace detail
 
 namespace {
 
@@ -360,8 +389,8 @@ int exec_verify_groth16(VmState* st) {
   std::vector<unsigned char> data(len);
   CHECK(cs->prefetch_bytes(data.data(), len));
 
-  typename snark::detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::verifier_data verifier_data =
-      snark::detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::process(st);
+  typename detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::verifier_data verifier_data =
+      detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::process(st);
 
   typename snark::r1cs_gg_ppzksnark<CurveType>::verification_key_type vk(verifier_data.vk);
   typename snark::r1cs_gg_ppzksnark<CurveType>::primary_input_type pi(verifier_data.pi);
@@ -433,7 +462,7 @@ void register_ton_crypto_ops(OpcodeTable& cp0) {
       .insert(OpcodeInstr::mksimple(0xf902, 16, "SHA256U", exec_compute_sha256))
       .insert(OpcodeInstr::mksimple(0xf910, 16, "CHKSIGNU", std::bind(exec_ed25519_check_signature, _1, false)))
       .insert(OpcodeInstr::mksimple(0xf911, 16, "CHKSIGNS", std::bind(exec_ed25519_check_signature, _1, true)))
-      .insert(OpcodeInstr::mksimple(0xf914, 16, "VERGRTH16", exec_verify_groth16<curves::mnt4<298>>));
+      .insert(OpcodeInstr::mksimple(0xf912, 16, "VERGRTH16", exec_verify_groth16<curves::mnt4<298>>));
 }
 
 int exec_compute_data_size(VmState* st, int mode) {
