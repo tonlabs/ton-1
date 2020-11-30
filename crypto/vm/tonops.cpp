@@ -16,6 +16,9 @@
 
     Copyright 2017-2020 Telegram Systems LLP
 */
+
+#include <vector>
+
 #include <functional>
 #include "vm/tonops.h"
 #include "vm/log.h"
@@ -30,40 +33,250 @@
 #include "openssl/digest.hpp"
 
 #include <nil/crypto3/algebra/curves/mnt4.hpp>
+#include <nil/crypto3/algebra/fields/mnt4/base_field.hpp>
+#include <nil/crypto3/algebra/fields/mnt4/scalar_field.hpp>
+#include <nil/crypto3/algebra/fields/arithmetic_params/mnt4.hpp>
+#include <nil/crypto3/algebra/curves/params/multiexp/mnt4.hpp>
+#include <nil/crypto3/algebra/curves/params/wnaf/mnt4.hpp>
 
 #include <nil/crypto3/zk/snark/blueprint.hpp>
+#include <nil/crypto3/zk/snark/sparse_vector.hpp>
+#include <nil/crypto3/zk/snark/accumulation_vector.hpp>
 
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark.hpp>
+#include <nil/crypto3/zk/snark/proof_systems/detail/ppzksnark/r1cs_gg_ppzksnark/types_policy.hpp>
+
+#include <boost/multiprecision/number.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
+#include <boost/multiprecision/modular/modular_adaptor.hpp>
+
+#include <nil/crypto3/detail/pack.hpp>
+#include <nil/crypto3/detail/stream_endian.hpp>
 
 namespace vm {
-
 namespace detail {
 
-template <typename ProofSystem>
-struct verifier_data_from_bits;
+  template<typename ProofSystem>
+  struct verifier_data_from_bits;
 
-template <typename CurveType>
-struct verifier_data_from_bits<nil::crypto3::zk::snark::r1cs_gg_ppzksnark<CurveType>> {
-  using proof_system = nil::crypto3::zk::snark::r1cs_gg_ppzksnark<CurveType>;
+  template<typename CurveType>
+  struct verifier_data_from_bits<nil::crypto3::zk::snark::r1cs_gg_ppzksnark<CurveType>> {
 
- public:
-  struct verifier_data {
-    typename proof_system::verification_key_type vk;
-    typename proof_system::primary_input_type pi;
-    typename proof_system::proof_type pr;
+      using proof_system = nil::crypto3::zk::snark::r1cs_gg_ppzksnark<CurveType>;
 
-    verifier_data(){};
+      using modulus_type = typename CurveType::base_field_type::modulus_type;
+      using number_type = typename CurveType::base_field_type::number_type;
 
-    verifier_data(typename proof_system::verification_key_type vk, typename proof_system::primary_input_type pi,
-                  typename proof_system::proof_type pr)
-        : vk(vk), pi(pi), pr(pr){};
+      constexpr static const std::size_t modulus_bits = CurveType::base_field_type::modulus_bits;
+
+      using chunk_type = std::uint8_t;
+
+      constexpr static const std::size_t chunk_size = 8;
+      constexpr static const std::size_t modulus_chunks =
+          modulus_bits / chunk_size + modulus_bits % chunk_size;
+
+      template<typename FieldType>
+      static inline
+          typename std::enable_if<!::nil::crypto3::detail::is_extended_field<FieldType>::value,
+                                  typename FieldType::value_type>::type
+          field_type_process(typename std::vector<chunk_type>::const_iterator &read_iter) {
+
+          using field_type = FieldType;
+
+          modulus_type fp_out;
+
+          boost::multiprecision::import_bits(fp_out, read_iter, read_iter + modulus_chunks,
+                                             chunk_size, false);
+
+          read_iter += modulus_chunks;
+
+          return typename field_type::value_type(fp_out);
+      }
+
+      template<typename FieldType>
+      static inline
+          typename std::enable_if<::nil::crypto3::detail::is_extended_field<FieldType>::value,
+                                  typename FieldType::value_type>::type
+          field_type_process(typename std::vector<chunk_type>::const_iterator &read_iter) {
+
+          using field_type = FieldType;
+
+          typename field_type::value_type::data_type data;
+          const std::size_t data_dimension =
+              field_type::arity / field_type::underlying_field_type::arity;
+
+          for (int n = 0; n < data_dimension; ++n) {
+              data[n] = field_type_process<typename field_type::underlying_field_type>(read_iter);
+          }
+
+          return typename field_type::value_type(data);
+      }
+
+      template<typename GroupType>
+      static inline typename GroupType::value_type
+          group_type_process(typename std::vector<chunk_type>::const_iterator &read_iter) {
+
+          typename GroupType::underlying_field_type::value_type X =
+              field_type_process<typename GroupType::underlying_field_type>(read_iter);
+
+          typename GroupType::underlying_field_type::value_type Y =
+              field_type_process<typename GroupType::underlying_field_type>(read_iter);
+
+          typename GroupType::underlying_field_type::value_type Z =
+              field_type_process<typename GroupType::underlying_field_type>(read_iter);
+
+          return typename GroupType::value_type(X, Y, Z);
+      }
+
+      static inline std::size_t
+          std_size_t_process(typename std::vector<chunk_type>::const_iterator &read_iter) {
+
+          std::vector<std::size_t> vector_s(1, 0);
+          auto iter = vector_s.begin();
+
+          std::size_t vector_c_size = 4;
+          std::vector<chunk_type> vector_c;
+
+          vector_c.reserve(vector_c_size);
+          vector_c.insert(vector_c.end(), read_iter, read_iter + vector_c_size);
+
+          nil::crypto3::detail::pack_from<nil::crypto3::stream_endian::big_octet_big_bit, 8, 32>(
+              vector_c, iter);
+
+          read_iter += sizeof(std::size_t);
+
+          return vector_s[0];
+      }
+
+      template<typename T>
+      static inline nil::crypto3::zk::snark::sparse_vector<T>
+          sparse_vector_process(typename std::vector<chunk_type>::const_iterator &read_iter) {
+
+          std::size_t indices_count = std_size_t_process(read_iter);
+
+          std::vector<std::size_t> indices(indices_count, 0);
+
+          for (std::size_t i = 0; i < indices_count; i++) {
+              indices[i] = std_size_t_process(read_iter);
+          }
+
+          std::size_t values_count = std_size_t_process(read_iter);
+
+          std::vector<typename T::value_type> values(values_count);
+
+          for (std::size_t i = 0; i < values_count; i++) {
+              values[i] = group_type_process<T>(read_iter);
+          }
+
+          std::size_t domain_size_ = std_size_t_process(read_iter);
+
+          nil::crypto3::zk::snark::sparse_vector<T> sv;
+
+          sv.indices = indices;
+          sv.values = values;
+          sv.domain_size_ = domain_size_;
+
+          return sv;
+      }
+
+      template<typename T>
+      static inline nil::crypto3::zk::snark::accumulation_vector<T>
+          accumulation_vector_process(typename std::vector<chunk_type>::const_iterator &read_iter) {
+
+          typename T::value_type first = group_type_process<T>(read_iter);
+          nil::crypto3::zk::snark::sparse_vector<T> rest = sparse_vector_process<T>(read_iter);
+
+          return nil::crypto3::zk::snark::accumulation_vector<T>(std::move(first), std::move(rest));
+      }
+
+      static inline typename proof_system::verification_key_type
+          verification_key_process(typename std::vector<chunk_type>::const_iterator &read_iter) {
+
+          using verification_key_type = typename proof_system::verification_key_type;
+
+          typename CurveType::gt_type::value_type alpha_g1_beta_g2 =
+              field_type_process<typename CurveType::gt_type>(read_iter);
+          typename CurveType::g2_type::value_type gamma_g2 =
+              group_type_process<typename CurveType::g2_type>(read_iter);
+          typename CurveType::g2_type::value_type delta_g2 =
+              group_type_process<typename CurveType::g2_type>(read_iter);
+
+          nil::crypto3::zk::snark::accumulation_vector<typename CurveType::g1_type> gamma_ABC_g1 =
+              accumulation_vector_process<typename CurveType::g1_type>(read_iter);
+
+          // verification_key_type vk = verification_key_type (
+          //    alpha_g1_beta_g2, gamma_g2, delta_g2, gamma_ABC_g1);
+
+          return verification_key_type(alpha_g1_beta_g2, gamma_g2, delta_g2, gamma_ABC_g1);
+      }
+
+      static inline typename proof_system::primary_input_type
+          primary_input_process(typename std::vector<chunk_type>::const_iterator &read_iter) {
+
+          using primary_input_type = typename proof_system::primary_input_type;
+
+          std::size_t pi_count = std_size_t_process(read_iter);
+
+          std::vector<typename CurveType::scalar_field_type::value_type> pi(pi_count);
+
+          for (std::size_t i = 0; i < pi_count; i++) {
+              pi[i] = field_type_process<typename CurveType::scalar_field_type>(read_iter);
+          }
+
+          // primary_input_type pi_ = primary_input_type(pi);
+
+          return primary_input_type(pi);
+      }
+
+      static inline typename proof_system::proof_type
+          proof_process(typename std::vector<chunk_type>::const_iterator &read_iter) {
+
+          using proof_type = typename proof_system::proof_type;
+
+          typename CurveType::g1_type::value_type g_A =
+              group_type_process<typename CurveType::g1_type>(read_iter);
+          typename CurveType::g2_type::value_type g_B =
+              group_type_process<typename CurveType::g2_type>(read_iter);
+          typename CurveType::g1_type::value_type g_C =
+              group_type_process<typename CurveType::g1_type>(read_iter);
+
+          proof_type pr = proof_type(std::move(g_A), std::move(g_B), std::move(g_C));
+          return pr;
+      }
+
+  public:
+      struct verifier_data {
+          typename proof_system::verification_key_type vk;
+          typename proof_system::primary_input_type pi;
+          typename proof_system::proof_type pr;
+
+          verifier_data() {};
+
+          verifier_data(typename proof_system::verification_key_type vk,
+                        typename proof_system::primary_input_type pi,
+                        typename proof_system::proof_type pr) :
+              vk(vk),
+              pi(pi), pr(pr) {};
+      };
+
+      template<typename DataType>
+      static inline verifier_data process(const DataType &data) {
+          return verifier_data();
+      }
+
+      static inline verifier_data process(const std::vector<chunk_type> &data) {
+
+          typename std::vector<chunk_type>::const_iterator read_iter = data.begin();
+
+          typename proof_system::verification_key_type vk = verification_key_process(read_iter);
+
+          typename proof_system::primary_input_type pi = primary_input_process(read_iter);
+
+          typename proof_system::proof_type pr = proof_process(read_iter);
+
+          return verifier_data(vk, pi, pr);
+      }
   };
-
-  template <typename DataType>
-  static inline verifier_data process(DataType data) {
-    return verifier_data();
-  }
-};
 
 }  // namespace detail
 
@@ -390,7 +603,7 @@ int exec_verify_groth16(VmState* st) {
   CHECK(cs->prefetch_bytes(data.data(), len));
 
   typename detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::verifier_data verifier_data =
-      detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::process(st);
+      detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::process(data);
 
   typename snark::r1cs_gg_ppzksnark<CurveType>::verification_key_type vk(verifier_data.vk);
   typename snark::r1cs_gg_ppzksnark<CurveType>::primary_input_type pi(verifier_data.pi);
