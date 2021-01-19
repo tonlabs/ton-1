@@ -65,12 +65,12 @@ template <typename CurveType>
 struct verifier_data_from_bits<r1cs_gg_ppzksnark<CurveType>> {
   using proof_system = r1cs_gg_ppzksnark<CurveType>;
 
-  using modulus_type = typename CurveType::base_field_type::modulus_type;
-  using number_type = typename CurveType::base_field_type::number_type;
+  typedef typename CurveType::base_field_type::modulus_type modulus_type;
+  typedef typename CurveType::base_field_type::number_type number_type;
 
   constexpr static const std::size_t modulus_bits = CurveType::base_field_type::modulus_bits;
 
-  using chunk_type = std::uint8_t;
+  typedef std::uint8_t chunk_type;
 
   constexpr static const std::size_t chunk_size = 8;
   constexpr static const std::size_t modulus_chunks = modulus_bits / chunk_size + modulus_bits % chunk_size;
@@ -226,12 +226,6 @@ struct verifier_data_from_bits<r1cs_gg_ppzksnark<CurveType>> {
     typename proof_system::verification_key_type vk;
     typename proof_system::primary_input_type pi;
     typename proof_system::proof_type pr;
-
-    verifier_data(){};
-
-    verifier_data(typename proof_system::verification_key_type vk, typename proof_system::primary_input_type pi,
-                  typename proof_system::proof_type pr)
-        : vk(vk), pi(pi), pr(pr){};
   };
 
   template <typename DataType>
@@ -248,7 +242,7 @@ struct verifier_data_from_bits<r1cs_gg_ppzksnark<CurveType>> {
 
     typename proof_system::proof_type pr = proof_process(read_iter);
 
-    return verifier_data(vk, pi, pr);
+    return {vk, pi, pr};
   }
 };
 
@@ -264,13 +258,12 @@ class verifier_data_to_bits<r1cs_gg_ppzksnark<CurveType>> {
 
   typedef boost::multiprecision::number<boost::multiprecision::backends::cpp_int_backend<>> modulus_type;
 
-  using chunk_type = std::uint8_t;
+  typedef std::uint8_t chunk_type;
 
   constexpr static const std::size_t chunk_size = 8;
   constexpr static const std::size_t modulus_chunks = modulus_bits / chunk_size + modulus_bits % chunk_size;
 
   template <typename FieldType>
-
   static inline typename std::enable_if<!::nil::crypto3::detail::is_extended_field<FieldType>::value, void>::type
   field_type_process(typename FieldType::value_type input_fp, typename std::vector<chunk_type>::iterator& write_iter) {
     boost::multiprecision::export_bits(modulus_type(input_fp.data), write_iter, chunk_size, false);
@@ -367,15 +360,9 @@ class verifier_data_to_bits<r1cs_gg_ppzksnark<CurveType>> {
     typename proof_system::verification_key_type vk;
     typename proof_system::primary_input_type pi;
     typename proof_system::proof_type pr;
-
-    verifier_data(){};
-
-    verifier_data(typename proof_system::verification_key_type vk, typename proof_system::primary_input_type pi,
-                  typename proof_system::proof_type pr)
-        : vk(vk), pi(pi), pr(pr){};
   };
 
-  static inline std::vector<chunk_type> process(verifier_data vd) {
+  static inline std::vector<chunk_type> process(const verifier_data& vd) {
     std::size_t g1_size = modulus_chunks * 3 * CurveType::g1_type::underlying_field_type::arity;
     std::size_t g2_size = modulus_chunks * 3 * CurveType::g2_type::underlying_field_type::arity;
     std::size_t std_size_t_size = 4;
@@ -406,11 +393,11 @@ class verifier_data_to_bits<r1cs_gg_ppzksnark<CurveType>> {
   static inline std::vector<chunk_type> process(typename proof_system::verification_key_type vk,
                                                 typename proof_system::primary_input_type pi,
                                                 typename proof_system::proof_type pr) {
-    return process(verifier_data(vk, pi, pr));
+    return process({vk, pi, pr});
   }
 
   static inline std::vector<chunk_type> process() {
-    return process(verifier_data());
+    return process({});
   }
 };
 
