@@ -39,7 +39,6 @@
 #include <nil/crypto3/algebra/curves/params/multiexp/mnt4.hpp>
 #include <nil/crypto3/algebra/curves/params/wnaf/mnt4.hpp>
 
-#include <nil/crypto3/zk/snark/blueprint.hpp>
 #include <nil/crypto3/zk/snark/sparse_vector.hpp>
 #include <nil/crypto3/zk/snark/accumulation_vector.hpp>
 
@@ -363,12 +362,11 @@ class verifier_data_to_bits<r1cs_gg_ppzksnark<CurveType>> {
   };
 
   static inline std::vector<chunk_type> process(const verifier_data& vd) {
-    std::size_t g1_size = modulus_chunks * 3 * CurveType::g1_type::underlying_field_type::arity;
-    std::size_t g2_size = modulus_chunks * 3 * CurveType::g2_type::underlying_field_type::arity;
+    std::size_t g1_size = modulus_chunks * 3 * CurveType::g1_type::underlying_field_type::arity; //48 * 3 * 1 = 144
+    std::size_t g2_size = modulus_chunks * 3 * CurveType::g2_type::underlying_field_type::arity; //48 * 3 * 2 = 288
     std::size_t std_size_t_size = 4;
 
-    std::size_t gt_size = modulus_chunks * CurveType::gt_type::underlying_field_type::arity;
-
+    std::size_t gt_size = modulus_chunks * CurveType::gt_type::underlying_field_type::arity; //48 * 12 = 576
     std::size_t sparse_vector_size = std_size_t_size + vd.vk.gamma_ABC_g1.rest.size() * std_size_t_size +
                                      std_size_t_size + vd.vk.gamma_ABC_g1.rest.values.size() * g1_size +
                                      std_size_t_size;
