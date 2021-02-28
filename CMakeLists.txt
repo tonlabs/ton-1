@@ -467,6 +467,12 @@ endif()
 
 add_executable(test-hello-world test/test-hello-world.cpp )
 target_link_libraries(test-hello-world tl_api ton_crypto)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(test-hello-world PRIVATE "-fconstexpr-steps=2147483647")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(test-hello-world PRIVATE "-fconstexpr-ops-limit=4294967295")
+endif()
+set_target_properties(test-hello-world PROPERTIES CXX_STANDARD 17)
 
 add_executable(test-adnl test/test-adnl.cpp)
 target_link_libraries(test-adnl adnl adnltest dht tl_api)
