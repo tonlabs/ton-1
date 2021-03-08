@@ -715,13 +715,19 @@ int exec_verify_groth16(VmState* st) {
 
   VM_LOG(st) << "execute VERGRTH16";
   Stack& stack = st->get_stack();
-  auto cs = stack.pop_cellslice();
-  if (cs->size() & 7) {
-    throw VmError{Excno::cell_und, "Slice does not consist of an integer number of bytes"};
+  auto proof_cell = stack.pop_cell();
+
+  CellBuilder cb;
+  auto data_cell_proof = cb.store_ref(proof_cell).finalize();
+  const unsigned char*  data_cell_proof_data = data_cell_proof->get_data();
+
+  if (data_cell_proof->size() & 7) {
+    throw VmError{Excno::cell_und, "Proof DataCell does not consist of an integer number of bytes"};
   }
-  auto len = (cs->size() << 3);
-  std::vector<unsigned char> data(len);
-  CHECK(cs->prefetch_bytes(data.data(), len));
+  
+  auto len = (data_cell_proof->size() << 3);
+  
+  std::vector<unsigned char> data(data_cell_proof_data, data_cell_proof_data + len);
 
   typename detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::verifier_data verifier_data =
       detail::verifier_data_from_bits<snark::r1cs_gg_ppzksnark<CurveType>>::process(data);
