@@ -3269,7 +3269,7 @@ void dump_stats() {
 int main(int argc, char *argv[]) {
   SET_VERBOSITY_LEVEL(verbosity_INFO);
 
-  LOG(INFO) << "\n" <<
+  //LOG(INFO) << "\n" <<
   //"BUILD_REVISION: " << BUILD_REVISION << "\n" <<
   //"BUILD_DATE: " << BUILD_DATE << "\n";
 
