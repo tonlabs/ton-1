@@ -47,7 +47,7 @@
 #include "td/utils/ThreadSafeCounter.h"
 #include "td/utils/TsFileLog.h"
 #include "td/utils/Random.h"
-#include "../gitrevision.hh"
+//#include "../gitrevision.hh"
 
 #include "auto/tl/lite_api.h"
 
@@ -3270,8 +3270,8 @@ int main(int argc, char *argv[]) {
   SET_VERBOSITY_LEVEL(verbosity_INFO);
 
   LOG(INFO) << "\n" <<
-  "BUILD_REVISION: " << BUILD_REVISION << "\n" <<
-  "BUILD_DATE: " << BUILD_DATE << "\n";
+  //"BUILD_REVISION: " << BUILD_REVISION << "\n" <<
+  //"BUILD_DATE: " << BUILD_DATE << "\n";
 
   td::set_default_failure_signal_handler().ensure();
 
