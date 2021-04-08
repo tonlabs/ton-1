@@ -82,7 +82,7 @@ struct verifier_data_from_bits<r1cs_gg_ppzksnark<CurveType>> {
 
     modulus_type fp_out;
 
-    boost::multiprecision::import_bits(fp_out, read_iter, read_iter + modulus_chunks, chunk_size, false);
+    crypto3::multiprecision::import_bits(fp_out, read_iter, read_iter + modulus_chunks, chunk_size, false);
 
     read_iter += modulus_chunks;
 
@@ -255,7 +255,7 @@ class verifier_data_to_bits<r1cs_gg_ppzksnark<CurveType>> {
 
   constexpr static const std::size_t modulus_bits = CurveType::base_field_type::modulus_bits;
 
-  typedef boost::multiprecision::number<boost::multiprecision::backends::cpp_int_backend<>> modulus_type;
+  typedef crypto3::multiprecision::number<crypto3::multiprecision::backends::cpp_int_backend<>> modulus_type;
 
   typedef std::uint8_t chunk_type;
 
@@ -265,7 +265,7 @@ class verifier_data_to_bits<r1cs_gg_ppzksnark<CurveType>> {
   template <typename FieldType>
   static inline typename std::enable_if<!::nil::crypto3::detail::is_extended_field<FieldType>::value, void>::type
   field_type_process(typename FieldType::value_type input_fp, typename std::vector<chunk_type>::iterator& write_iter) {
-    boost::multiprecision::export_bits(modulus_type(input_fp.data), write_iter, chunk_size, false);
+    crypto3::multiprecision::export_bits(modulus_type(input_fp.data), write_iter, chunk_size, false);
     write_iter += modulus_chunks;
   }
 
