@@ -43,11 +43,10 @@
 #include <nil/crypto3/zk/snark/accumulation_vector.hpp>
 
 #include <nil/crypto3/zk/snark/proof_systems/ppzksnark/r1cs_gg_ppzksnark.hpp>
-#include <nil/crypto3/zk/snark/proof_systems/detail/ppzksnark/r1cs_gg_ppzksnark/types_policy.hpp>
 
-#include <boost/multiprecision/number.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
-#include <boost/multiprecision/modular/modular_adaptor.hpp>
+#include <nil/crypto3/multiprecision/number.hpp>
+#include <nil/crypto3/multiprecision/cpp_int.hpp>
+#include <nil/crypto3/multiprecision/modular/modular_adaptor.hpp>
 
 #include <nil/crypto3/detail/pack.hpp>
 #include <nil/crypto3/detail/stream_endian.hpp>
@@ -82,7 +81,7 @@ struct verifier_data_from_bits<r1cs_gg_ppzksnark<CurveType>> {
 
     modulus_type fp_out;
 
-    crypto3::multiprecision::import_bits(fp_out, read_iter, read_iter + modulus_chunks, chunk_size, false);
+    nil::crypto3::multiprecision::import_bits(fp_out, read_iter, read_iter + modulus_chunks, chunk_size, false);
 
     read_iter += modulus_chunks;
 
@@ -255,7 +254,7 @@ class verifier_data_to_bits<r1cs_gg_ppzksnark<CurveType>> {
 
   constexpr static const std::size_t modulus_bits = CurveType::base_field_type::modulus_bits;
 
-  typedef crypto3::multiprecision::number<crypto3::multiprecision::backends::cpp_int_backend<>> modulus_type;
+  typedef nil::crypto3::multiprecision::number<nil::crypto3::multiprecision::backends::cpp_int_backend<>> modulus_type;
 
   typedef std::uint8_t chunk_type;
 
@@ -265,7 +264,7 @@ class verifier_data_to_bits<r1cs_gg_ppzksnark<CurveType>> {
   template <typename FieldType>
   static inline typename std::enable_if<!::nil::crypto3::detail::is_extended_field<FieldType>::value, void>::type
   field_type_process(typename FieldType::value_type input_fp, typename std::vector<chunk_type>::iterator& write_iter) {
-    crypto3::multiprecision::export_bits(modulus_type(input_fp.data), write_iter, chunk_size, false);
+    nil::crypto3::multiprecision::export_bits(modulus_type(input_fp.data), write_iter, chunk_size, false);
     write_iter += modulus_chunks;
   }
 
@@ -736,7 +735,7 @@ int exec_verify_groth16(VmState* st) {
   typename snark::r1cs_gg_ppzksnark<CurveType>::primary_input_type pi(verifier_data.pi);
   typename snark::r1cs_gg_ppzksnark<CurveType>::proof_type pr(verifier_data.pr);
 
-  stack.push_bool(snark::r1cs_gg_ppzksnark<CurveType>::verifier(vk, pi, pr));
+  stack.push_bool(snark::r1cs_gg_ppzksnark<CurveType>::verify(vk, pi, pr));
   return 0;
 }
 
