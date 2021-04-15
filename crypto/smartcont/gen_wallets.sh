@@ -27,8 +27,8 @@ while IFS= read -r line; do
         NAME="${NAME%\"}"
         NAME="${NAME#\"}"
         echo "{ \"public\": ${PUBKEY}, \"secret\": \"${ZERO}\" }" >deploy.keys.json
-        cp SafeMultisigWallet.tvc "/home/svt/shared/private/common/${NAME}SafeMultisigWallet.tvc"
-        /utils/tonos-cli genaddr "/home/svt/shared/private/common/${NAME}SafeMultisigWallet.tvc" SafeMultisigWallet.abi.json --setkey deploy.keys.json --wc -1 --save
+        cp SafeMultisigWallet.tvc "/home/ruser/shared/private/common/${NAME}SafeMultisigWallet.tvc"
+        /utils/tonos-cli genaddr "/home/ruser/shared/private/common/${NAME}SafeMultisigWallet.tvc" SafeMultisigWallet.abi.json --setkey deploy.keys.json --wc -1 --save
     fi
 
     if [ "$(echo "$line" | grep ^giver)" != "" ]; then
@@ -37,8 +37,8 @@ while IFS= read -r line; do
         NAME="${NAME%\"}"
         NAME="${NAME#\"}"
         echo "{ \"public\": ${PUBKEY}, \"secret\": \"${ZERO}\" }" >deploy.keys.json
-        cp SetcodeMultisigWallet.tvc "/home/svt/shared/private/common/${NAME}SetcodeMultisigWallet.tvc"
-        /utils/tonos-cli genaddr "/home/svt/shared/private/common/${NAME}SetcodeMultisigWallet.tvc" SetcodeMultisigWallet.abi.json --setkey deploy.keys.json --wc -1 --save
+        cp SetcodeMultisigWallet.tvc "/home/ruser/shared/private/common/${NAME}SetcodeMultisigWallet.tvc"
+        /utils/tonos-cli genaddr "/home/ruser/shared/private/common/${NAME}SetcodeMultisigWallet.tvc" SetcodeMultisigWallet.abi.json --setkey deploy.keys.json --wc -1 --save
     fi
 done <"${SCRIPT_DIR}/${INIT_WALLETS_FILE}"
 
