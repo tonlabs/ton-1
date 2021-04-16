@@ -21,19 +21,20 @@ library InitWalletsFld // Library to hardcode wallets into zerostate
 
 {
 // [wallets]
-entry "wallet01" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet02" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet03" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet04" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet05" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet06" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet07" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet08" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet09" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet10" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet11" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet12" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
-entry "wallet13" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "ZerostateMsig0" GR$6000001 "7a56f74315f7e1c7db2cf662603acad7beeba788fe6b20c9bb6dfd8abe262bcc" create-msig
+entry "ZerostateMsig1" GR$6000001 "aba0749ee3255e9290807324f9c5588e3777da17e0c95e01b29c13bf46e4680a" create-msig
+entry "ZerostateMsig2" GR$6000001 "7fe091a0b4663b2d8fc9bc0029402405d79ba4354007c5bed9513a1227d190e5" create-msig
+entry "ZerostateMsig3" GR$6000001 "9ec812e7b509fe2fabae436afbc14d51fcb807dee6f7292ab68622149e5fa126" create-msig
+entry "ZerostateMsig4" GR$6000001 "431b95c10192e726be6ac99c207c393272b9caa1b7bbf7d9eae2454a01db1360" create-msig
+entry "ZerostateMsig5" GR$6000001 "f3a2acd87e2064ca5a8631f8600b1e48588bc08001dfc0b9f47bf5dfd328f721" create-msig
+entry "ZerostateMsig6" GR$6000001 "814c7658448a760901b2db008eea8a4adc994a2f0133140673c4cd8f9fb1d5be" create-msig
+entry "ZerostateMsig7" GR$6000001 "afc112cf35bfdc0fa02e195de0beeff43f1064cb520726145fde1afd2e8ed1dc" create-msig
+entry "ZerostateMsig8" GR$6000001 "28fcda562a465c9bd02e8f36bd3b81bdb42fd04d0da6870e4616a6fe1de47cab" create-msig
+entry "ZerostateMsig9" GR$6000001 "4661fa980441d27c23dbfd00f353b18b13712afe4bbf1fbfc33c4baacd987ace" create-msig
+entry "ZerostateMsig10" GR$6000001 "d7340bbeb6e376704d1e7095923cd867ab6841f386ca8c83c6fecc50d98c06e9" create-msig
+entry "ZerostateMsig11" GR$6000001 "079c031b07c218d0aceaee41da56763fe304bb63d541114578457151965f3734" create-msig
+entry "ZerostateMsig12" GR$6000001 "628482999a1104707b6de3b65bb5fb4914b315bf1565f8c4630d99cd4e85f0b0" create-msig
+entry "ZerostateMsig13" GR$6000001 "022765e8d389505d288c7b7c8c08b9f11d4422827e4988b42b000a3a7515471e" create-msig
 // [end]
 } : create-wallets
 
@@ -62,7 +63,5 @@ entry "wallet13" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bc
 { Ones 9 * } : dev-addr
 
 {
-giver "Ref" ref-addr GR$4248896154 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-spec-giver
-giver "Val" val-addr GR$499240000 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-spec-giver
-giver "Dev" dev-addr GR$243920000 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-spec-giver
+giver "Ref" ref-addr GR$5000000000 "553f9351ca08417c8c338413c2fd4b30eb7f6d35694e3e1b8ceb3d5729a34520" create-spec-giver
 } : create-givers
