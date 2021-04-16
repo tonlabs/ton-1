@@ -21,19 +21,19 @@ library InitWalletsFld // Library to hardcode wallets into zerostate
 
 {
 // [wallets]
-entry "wallet01" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet02" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet03" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet04" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet05" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet06" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet07" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet08" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet09" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet10" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet11" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet12" GR$100001 "DEPLOY_PUB_KEY" create-msig
-entry "wallet13" GR$100001 "DEPLOY_PUB_KEY" create-msig
+entry "wallet01" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet02" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet03" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet04" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet05" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet06" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet07" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet08" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet09" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet10" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet11" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet12" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
+entry "wallet13" GR$100001 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-msig
 // [end]
 } : create-wallets
 
@@ -62,7 +62,7 @@ entry "wallet13" GR$100001 "DEPLOY_PUB_KEY" create-msig
 { Ones 9 * } : dev-addr
 
 {
-giver "Ref" ref-addr GR$4248896154 "DEPLOY_PUB_KEY" create-spec-giver
-giver "Val" val-addr GR$499240000 "DEPLOY_PUB_KEY" create-spec-giver
-giver "Dev" dev-addr GR$243920000 "DEPLOY_PUB_KEY" create-spec-giver
+giver "Ref" ref-addr GR$4248896154 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-spec-giver
+giver "Val" val-addr GR$499240000 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-spec-giver
+giver "Dev" dev-addr GR$243920000 "1c8443bdc773be7afb808379fd76a00689c68617f61ece4d98bccbe9c36557f2" create-spec-giver
 } : create-givers
