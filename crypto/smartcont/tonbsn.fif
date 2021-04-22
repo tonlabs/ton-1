@@ -1,0 +1,67 @@
+library InitWalletsFld // Library to hardcode wallets into zerostate
+
+256 1<<1- 15 / constant Ones
+
+{
+  drop 1 pick "SafeMultisigWallet.tvc" $+ file>B B>boc  
+  <s 2 i@+ nip ref@+ // load code (as cell) from `.tvc` file
+  swap ref@+ nip     // load data (as cell) from `.tvc` file
+  empty_cell         // libs
+  3 roll  // balance
+  0 // split_depth
+  0 // ticktock
+  2 // mode: create
+  register_smc
+  Masterchain swap 2 pick  
+  type ." multisig address = " 2dup .addr cr 2dup 6 .Addr cr
+  rot +"_multisig.addr" save-address-verbose
+} : create-msig
+
+{ } : entry
+
+{
+// [wallets]
+entry "ZerostateMsig0" GR$6000001 "61afbcd5e9cd6521a764177f8a9341f2459b9dcd472196264e83edc362c786c8" create-msig
+entry "ZerostateMsig1" GR$6000001 "e7b660cd551663cd6bf5c78cabdc82985e9b520083277548929fda01950039d0" create-msig
+entry "ZerostateMsig2" GR$6000001 "29e5127163b35de150e86baa9e356dc19e858be4d9caa30c8f11c58c3ccf59b7" create-msig
+entry "ZerostateMsig3" GR$6000001 "d57c85a39ba23f788a4e4695fa061a656f536af6fcf31d893d7973a6107d7ce3" create-msig
+entry "ZerostateMsig4" GR$6000001 "32b2f18f9f89d848c0484d4244b4446a52f273345393eb1c23c5bcb1f27b6c36" create-msig
+entry "ZerostateMsig5" GR$6000001 "419d833f24f0cbe3328e7ad03a5c55ca9a744a00182e668a6b0cbc78379b0b4e" create-msig
+entry "ZerostateMsig6" GR$6000001 "1c62b244c560274be3d7100049972c4bdb21bbb35f19a45089de02f86cbbe257" create-msig
+entry "ZerostateMsig7" GR$6000001 "cf5345bf2874672fce3d600e95c373e819584f187b3434a87984a0cca8fe3bb8" create-msig
+entry "ZerostateMsig8" GR$6000001 "3ec0404a62ec820f66a712aee28dc022c567cb69aca304bf511ff389b573a37d" create-msig
+entry "ZerostateMsig9" GR$6000001 "a966a33d4ff8008146a1553c088037a60eebc22f3edd782b504c4e5b794dcc12" create-msig
+entry "ZerostateMsig10" GR$6000001 "5647b2505957235a7a25c7d20870978263b77fc4900f097682cf6e2ae025925f" create-msig
+entry "ZerostateMsig11" GR$6000001 "565e75c9aee64554905035afa2139d86bdac07bd0542da0b32f54c21bfc512bd" create-msig
+entry "ZerostateMsig12" GR$6000001 "95456c216ef91075d60f7890ce2bed131c4174a6a4d150b88e032a315e32343c" create-msig
+entry "ZerostateMsig13" GR$6000001 "9badfa44aa011fbba8000480a4d5bfdec370f03dc82f4f61dd0b2301e3760b97" create-msig
+// [end]
+} : create-wallets
+
+
+{
+  drop 2 pick "SetcodeMultisigWallet.tvc" $+ file>B B>boc  
+  <s 2 i@+ nip ref@+ // load code (as cell) from `.tvc` file
+  swap ref@+ nip     // load data (as cell) from `.tvc` file
+  empty_cell         // libs
+  3 roll  // balance
+  0 // split_depth
+  0 // ticktock
+  6 roll // address
+  6 // mode: create + setaddr
+  register_smc
+  dup make_special
+  Masterchain swap 2 pick  
+  type ." multisig address = " 2dup .addr cr 2dup 6 .Addr cr
+  rot +"_multisig.addr" save-address-verbose
+} : create-spec-giver
+
+{ } : giver
+
+{ Ones 7 * } : ref-addr
+{ Ones 8 * } : val-addr
+{ Ones 9 * } : dev-addr
+
+{
+giver "Ref" ref-addr GR$5000000000 "89be9aea336f139086894b1d3f6a9f11888002f321b95ef8bea2d557dacc4cc7" create-spec-giver
+} : create-givers
