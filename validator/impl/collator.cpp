@@ -2223,6 +2223,11 @@ Ref<vm::Cell> Collator::create_ordinary_transaction(Ref<vm::Cell> msg_root) {
                           << " is too large");
     return {};
   }
+  // patch for case with destroy and redeploy account in the same block
+  // account existed on then block collation is started
+  // one transaction destroys it
+  // another transaction in the same block deploys it again
+  acc->created = acc->status == acc->acc_nonexist;
   auto trans_min_lt = start_lt;
   if (external) {
     // transactions processing external messages must have lt larger than all processed internal messages
