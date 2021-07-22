@@ -384,7 +384,6 @@ bool ValidateQuery::init_parse() {
   block::gen::BlockInfo::Record info;
   block::gen::BlockExtra::Record extra;
   block::gen::ExtBlkRef::Record mcref;  // _ ExtBlkRef = BlkMasterInfo;
-  block::gen::GlobalVersion::Record gv;
   ShardIdFull shard;
   if (!(tlb::unpack_cell(block_root_, blk) && tlb::unpack_cell(blk.info, info) && !info.version &&
         block::tlb::t_ShardIdent.unpack(info.shard.write(), shard) &&
@@ -395,11 +394,9 @@ bool ValidateQuery::init_parse() {
   if (shard != shard_) {
     return reject_query("shard mismatch in the block header");
   }
-  if (!(info.flags & 1) || !tlb::csr_unpack_inexact(info.gen_software, gv)) {
+  gv_ = std::make_unique<block::gen::GlobalVersion::Record>();
+  if (!(info.flags & 1) || !tlb::csr_unpack_inexact(info.gen_software, *gv_)) {
     return reject_query("cannot unpack global version from block header");
-  }
-  if (gv.version < supported_version()) {
-    return reject_query(PSTRING() << "This block version "s << gv.version << " is too old");
   }
   state_update_ = blk.state_update;
   vm::CellSlice upd_cs{vm::NoVmSpec(), blk.state_update};
@@ -703,6 +700,10 @@ bool ValidateQuery::try_unpack_mc_state() {
       LOG(ERROR) << "block version " << config_->get_global_version()
                  << " have been enabled in global configuration, but we support only " << supported_version()
                  << " (upgrade validator software?)";
+    }
+    CHECK(gv_);
+    if ((int)gv_->version < config_->get_global_version()) {
+      return reject_query(PSTRING() << "This block version "s << gv_->version << " is too old");
     }
 
     old_shard_conf_ = std::make_unique<block::ShardConfig>(*config_);

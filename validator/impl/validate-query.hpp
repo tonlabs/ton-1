@@ -21,6 +21,7 @@
 #include "interfaces/validator-manager.h"
 #include "vm/cells.h"
 #include "vm/dict.h"
+#include "block/block-auto.h"
 #include "block/mc-config.h"
 #include "block/transaction.h"
 #include "shard.hpp"
@@ -218,6 +219,7 @@ class ValidateQuery : public td::actor::Actor {
   std::unique_ptr<vm::AugmentedDictionary> in_msg_dict_, out_msg_dict_, account_blocks_dict_;
   block::ValueFlow value_flow_;
   block::CurrencyCollection import_created_, transaction_fees_;
+  std::unique_ptr<block::gen::GlobalVersion::Record> gv_;
   td::RefInt256 import_fees_;
 
   ton::LogicalTime proc_lt_{0}, claimed_proc_lt_{0}, min_enq_lt_{~0ULL};
