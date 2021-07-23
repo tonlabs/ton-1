@@ -447,6 +447,7 @@ int exec_mulshrmod(VmState* st, unsigned args, int mode) {
   auto x = stack.pop_int();
   typename td::BigInt256::DoubleInt tmp{0};
   tmp.add_mul(*x, *y);
+  tmp.normalize();
   switch ((args >> 2) & 3) {
     case 1:
       tmp.rshift(z, round_mode).normalize();
@@ -522,6 +523,7 @@ int exec_shldivmod(VmState* st, unsigned args, int mode) {
   auto x = stack.pop_int();
   typename td::BigInt256::DoubleInt tmp{*x};
   tmp <<= y;
+  tmp.normalize();
   switch ((args >> 2) & 3) {
     case 1: {
       auto q = td::make_refint();
